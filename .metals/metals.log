@@ -3,3 +3,6 @@
 2026.05.20 17:03:07 WARN  Using H2 2.4.240 which is newer than the version Flyway has been verified with. The latest verified version of H2 is 2.3.232.
 2026.05.20 17:03:08 WARN  no build target for: C:\Users\admin\Documents\BC\kurullo-springboot-test\src\test\java\com\example\kurullo\KurulloApplicationTests.java
 2026.05.20 17:03:14 WARN  no build target for: C:\Users\admin\Documents\BC\kurullo-springboot-test\src\test\java\com\example\kurullo\KurulloApplicationTests.java
+2026.05.20 17:03:29 INFO  no build target found for C:\Users\admin\Documents\BC\kurullo-springboot-test\src\test\java\com\example\kurullo\KurulloApplicationTests.java. Using fallback presentation compiler.
+May 20, 2026 5:04:09 PM org.eclipse.lsp4j.jsonrpc.services.GenericEndpoint notify
+INFO: Unsupported notification method: $/setTrace
