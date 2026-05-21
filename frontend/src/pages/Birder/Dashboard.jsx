@@ -1,11 +1,11 @@
 import React from 'react'
 
-const register = () => {
+const Dashboard = () => {
   return (
     <div>
-      register
+      dash
     </div>
   )
 }
 
-export default register
+export default Dashboard
