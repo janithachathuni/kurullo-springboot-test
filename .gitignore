@@ -43,3 +43,5 @@ frontend/dist/
 # Environment / secrets
 .env
 application.properties
+
+mobile/node_modules/
