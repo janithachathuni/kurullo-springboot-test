@@ -46,3 +46,6 @@ application.properties
 src/main/resources/application.properties
 
 mobile/node_modules/
+
+
+backend_commands.txt
