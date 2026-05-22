@@ -19,22 +19,32 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2Login(oauth -> oauth
-                .successHandler(oAuth2LoginSuccessHandler)
-            )
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+   @Bean
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .cors(cors -> cors.configurationSource(request -> {
+            var config = new org.springframework.web.cors.CorsConfiguration();
+            config.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+            config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE"));
+            config.setAllowedHeaders(java.util.List.of("*"));
+            config.setAllowCredentials(true);
+            return config;
+        }))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(s -> s
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+            .anyRequest().authenticated()
+        )
+        .oauth2Login(oauth -> oauth
+            .successHandler(oAuth2LoginSuccessHandler)
+        )
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+    return http.build();
+}
 
     @Bean
     public PasswordEncoder passwordEncoder() {

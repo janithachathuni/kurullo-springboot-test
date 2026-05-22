@@ -32,14 +32,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         if (isNew) {
             // Redirect to complete registration — don't create user yet
-            response.sendRedirect("http://localhost:8081/complete-registration?email=" + email + "&googleId=" + googleId);
+            response.sendRedirect("http://localhost:5173/complete-registration?email=" + email + "&googleId=" + googleId);
             return;
         }
 
         User user = userRepository.findByEmail(email).orElseThrow();
         String token = jwtUtil.generateToken(email);
 
-        response.sendRedirect("http://localhost:8081/oauth2/success?token=" + token
+        response.sendRedirect("http://localhost:5173/oauth2/success?token=" + token
                 + "&role=" + user.getRole()
                 + "&isFirstLogin=" + user.isFirstLogin()
                 + "&profileCompleted=" + user.isProfileCompleted());
