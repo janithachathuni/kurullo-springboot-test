@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 
-const API_BASE = 'http://localhost:8080/api/auth/login' // ← replace with your machine's local IP (not localhost)
+const API_BASE = 'http://10.249.117.165:8080' // ← replace with your machine's local IP (not localhost)
 
 export default function LoginScreen({ navigation }) {
   const [form, setForm] = useState({ email: '', password: '' })

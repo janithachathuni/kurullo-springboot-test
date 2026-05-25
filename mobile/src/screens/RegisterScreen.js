@@ -12,7 +12,7 @@ import {
   ScrollView,
 } from 'react-native'
 
-const API_BASE = 'http://localhost:8080/api/auth/register' // ← same IP as LoginScreen
+const API_BASE = 'http://10.249.117.165:8080' // ← same IP as LoginScreen
 
 export default function RegisterScreen({ navigation }) {
   const [form, setForm] = useState({ username: '', email: '', password: '' })

@@ -13,7 +13,7 @@ import {
 } from 'react-native'
 import * as ExpoLinking from 'expo-linking'
 
-const API_BASE = 'http://localhost:8080/api/auth/complete-google-registration' // ← same IP as other screens
+const API_BASE = 'http://10.249.117.165:8080' // ← replace with your Wireless LAN IPv4
 
 export default function CompleteRegistrationScreen({ navigation }) {
   const [username, setUsername] = useState('')
