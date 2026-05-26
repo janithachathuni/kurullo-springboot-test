@@ -5,6 +5,7 @@ import Register from "../pages/Register";
 import Dashboard from "../pages/Birder/Dashboard";
 import OAuth2Success from "../pages/OAuth2Success";
 import CompleteRegistration from "../pages/CompleteRegistration";
+import CreateProfile from "../pages/Birder/CreateProfile";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -13,6 +14,7 @@ const router = createBrowserRouter([
   { path: "/dashboard", element: <Dashboard /> },
   { path: "/oauth2/success", element: <OAuth2Success /> },
   { path: "/complete-registration", element: <CompleteRegistration /> },
+  { path: "/create-profile", element: <CreateProfile /> },
 
   { path: "*", element: <Navigate to="/" /> },
 ]);
