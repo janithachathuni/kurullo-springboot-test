@@ -15,6 +15,12 @@ export default function DashboardScreen({ navigation }) {
           <Text style={s.settingsText}>⚙</Text>
         </TouchableOpacity>
       </View>
+
+      <View style={s.body}>
+        <TouchableOpacity style={s.link} onPress={() => navigation.navigate('Colour')}>
+          <Text style={s.linkText}>Colour Screen →</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   )
 }
@@ -29,7 +35,11 @@ const styles = (theme) =>
       paddingHorizontal: 24,
       paddingTop: 24,
     },
-    title: { color: theme.text, fontSize: 20, fontWeight: '700' },
+    title: {
+      color: theme.text,
+      fontSize: 24,
+      fontFamily: 'Besley_700Bold',
+    },
     settingsBtn: {
       backgroundColor: theme.bgSecondary,
       borderWidth: 1,
@@ -38,4 +48,22 @@ const styles = (theme) =>
       padding: 8,
     },
     settingsText: { fontSize: 18 },
+    body: {
+      flex: 1,
+      paddingHorizontal: 24,
+      paddingTop: 32,
+    },
+    link: {
+      backgroundColor: theme.bgSecondary,
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 12,
+      paddingHorizontal: 18,
+      paddingVertical: 16,
+    },
+    linkText: {
+      color: theme.accent,
+      fontSize: 15,
+      fontFamily: 'SchibstedGrotesk_700Bold',
+    },
   })

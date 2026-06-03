@@ -4,6 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const THEME_KEY = 'app_theme'
 
+export const fonts = {
+  body: 'SchibstedGrotesk_400Regular',
+  bodyBold: 'SchibstedGrotesk_700Bold',
+  heading: 'Besley_400Regular',
+  headingBold: 'Besley_700Bold',
+}
+
 export const lightTheme = {
   dark: false,
   bg: '#ffffff',
@@ -37,7 +44,7 @@ export const darkTheme = {
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
-  const [isDark, setIsDark] = useState(true) // default dark
+  const [isDark, setIsDark] = useState(true)
 
   useEffect(() => {
     AsyncStorage.getItem(THEME_KEY).then((val) => {
@@ -54,7 +61,7 @@ export function ThemeProvider({ children }) {
   const theme = isDark ? darkTheme : lightTheme
 
   return (
-    <ThemeContext.Provider value={{ theme, isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, isDark, toggleTheme, fonts }}>
       {children}
     </ThemeContext.Provider>
   )

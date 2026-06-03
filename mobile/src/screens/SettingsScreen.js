@@ -9,6 +9,7 @@ import {
   SafeAreaView,
 } from 'react-native'
 import { useTheme } from '../context/ThemeContext'
+import { Heading, BodyText } from '../components/Typography'
 
 export default function SettingsScreen({ navigation }) {
   const { theme, isDark, toggleTheme } = useTheme()
@@ -21,19 +22,19 @@ export default function SettingsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
           <Text style={s.backText}>← Back</Text>
         </TouchableOpacity>
-        <Text style={s.title}>Settings</Text>
+        <Heading style={s.title}>Settings</Heading>
         <View style={s.titleAccent} />
       </View>
 
       {/* Theme row */}
       <View style={s.section}>
-        <Text style={s.sectionLabel}>APPEARANCE</Text>
+        <BodyText style={s.sectionLabel}>APPEARANCE</BodyText>
         <View style={s.row}>
           <View>
-            <Text style={s.rowTitle}>{isDark ? 'Dark Mode' : 'Light Mode'}</Text>
-            <Text style={s.rowSub}>
+            <BodyText style={s.rowTitle}>{isDark ? 'Dark Mode' : 'Light Mode'}</BodyText>
+            <BodyText style={s.rowSub}>
               {isDark ? 'Switch to light theme' : 'Switch to dark theme'}
-            </Text>
+            </BodyText>
           </View>
           <Switch
             value={isDark}

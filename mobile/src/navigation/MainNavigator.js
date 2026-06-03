@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext'
 
 import DashboardScreen from '../screens/DashboardScreen'
 import SettingsScreen from '../screens/SettingsScreen'
+import ColourScreen from '../screens/ColourScreen'
 
 const Stack = createNativeStackNavigator()
 
@@ -21,6 +22,7 @@ export default function MainNavigator() {
     >
       <Stack.Screen name="Dashboard" component={DashboardScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="Colour" component={ColourScreen} />
     </Stack.Navigator>
   )
 }
