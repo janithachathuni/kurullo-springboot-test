@@ -1,42 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --bg-primary: #ffffff;
-  --bg-secondary: #f4f4f5;
-  --bg-card: #ffffff;
-  --text-primary: #111111;
-  --text-secondary: #555555;
-  --text-muted: #a1a1aa;
-  --border: #e4e4e7;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --accent-text: #ffffff;
-  --error: #dc2626;
-  --success: #16a34a;
-  --shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+body {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  color: black;
+  font-size: 14px;
 }
 
-.dark {
+h1, h2 {
+  font-family: 'Besley', serif;
+}
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f6f5;
+  --bg-card: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #4b5563;
+  --border: #d1d5db;
+  --accent: #143829;
+  --accent-text: #ffffff;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
   --bg-primary: #0f0f0f;
   --bg-secondary: #1a1a1a;
   --bg-card: #1e1e1e;
-  --text-primary: #f4f4f5;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  --text-primary: #f1f1f1;
+  --text-secondary: #9ca3af;
   --border: #2e2e2e;
-  --accent: #6366f1;
-  --accent-hover: #818cf8;
-  --accent-text: #ffffff;
-  --error: #f87171;
-  --success: #4ade80;
-  --shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-}
-
-* {
-  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-}
-
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
+  --accent: #4ade80;
+  --accent-text: #0f0f0f;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
