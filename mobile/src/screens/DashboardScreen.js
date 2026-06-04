@@ -10,7 +10,7 @@ export default function DashboardScreen({ navigation }) {
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
-        <Text style={s.title}>Dashboard 🎉</Text>
+        <Text style={s.title}>Dashboard</Text>
         <TouchableOpacity style={s.settingsBtn} onPress={() => navigation.navigate('Settings')}>
           <Text style={s.settingsText}>⚙</Text>
         </TouchableOpacity>

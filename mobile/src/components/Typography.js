@@ -15,7 +15,7 @@ export function BoldText({ style, ...props }) {
 
 export function Heading({ style, ...props }) {
   const { theme, fonts } = useTheme()
-  return <Text style={[{ fontFamily: fonts.headingBold, color: theme.text }, style]} {...props} />
+  return <Text style={[{ fontFamily: 'Besley_700Bold', color: theme.text }, style]} {...props} />
 }
 
 export function MediumText({ style, ...props }) {
