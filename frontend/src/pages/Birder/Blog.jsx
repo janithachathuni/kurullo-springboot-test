@@ -1,20 +1,20 @@
 import React from 'react';
-import AdminSidebar from '../../components/AdminSidebar';
+import Sidebar from '../../components/Sidebar';
 
-const Dashboard = () => {
+const Blog = () => {
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
-      <AdminSidebar />
+      <Sidebar />
       <main className="ml-[220px] flex-1 p-8">
         <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-          Dashboard
+          Blog
         </h1>
         <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-          Welcome to the admin panel.
+          Your posts and activity.
         </p>
       </main>
     </div>
   );
 };
 
-export default Dashboard;
+export default Blog;

@@ -1,9 +1,17 @@
 @import "tailwindcss";
+/* 
+fonts: 
+Schibsted Grotesk
+Figtree
+Pliant
+Google Sans 
+Outfit */
 
 body {
   font-family: 'Schibsted Grotesk', sans-serif;
   color: black;
   font-size: 14px;
+  font-weight: 350;
 }
 
 h1, h2 {

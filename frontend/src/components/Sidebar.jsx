@@ -14,18 +14,18 @@ import {
 
 const Sidebar = () => {
   const navigate = useNavigate();
-  const [currentUser, setCurrentUser] = useState(null);
+  const token = localStorage.getItem('token');
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+if (!token) { window.location.href = '/login'; }
+if (user?.role === 'ADMIN') { window.location.href = '/admin/dashboard'; }
 
-  useEffect(() => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) { window.location.href = '/login'; return; }
-      const user = JSON.parse(localStorage.getItem('user'));
-      if (user) setCurrentUser(user);
-    } catch (err) {
-      console.error('Failed to parse user', err);
-    }
-  }, []);
+const [currentUser, setCurrentUser] = useState(() => {
+  try {
+    return JSON.parse(localStorage.getItem('user'));
+  } catch {
+    return null;
+  }
+});
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -57,18 +57,6 @@ const Sidebar = () => {
           <h2 className="text-2xl font-extrabold" style={{ color: "var(--accent)" }}>Kurullo</h2>
         </NavLink>
       </div>
-
-      {/* User info */}
-      {currentUser && (
-        <div className="px-6 py-3 mb-2">
-          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
-            {currentUser.displayName || currentUser.username}
-          </p>
-          <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
-            @{currentUser.username}
-          </p>
-        </div>
-      )}
 
       {/* Nav Items */}
       <div className="flex-1 overflow-y-auto py-2">

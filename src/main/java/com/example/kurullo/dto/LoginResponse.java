@@ -10,4 +10,5 @@ public class LoginResponse {
     private String role;
     private boolean isFirstLogin;
     private boolean profileCompleted;
+    private String username;  // add this
 }

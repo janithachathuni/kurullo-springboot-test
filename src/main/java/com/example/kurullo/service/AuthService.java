@@ -1,13 +1,15 @@
 package com.example.kurullo.service;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.example.kurullo.dto.LoginRequest;
 import com.example.kurullo.dto.LoginResponse;
 import com.example.kurullo.model.User;
 import com.example.kurullo.repository.UserRepository;
 import com.example.kurullo.security.JwtUtil;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,8 @@ public class AuthService {
                 token,
                 user.getRole().name(),
                 user.isFirstLogin(),
-                user.isProfileCompleted()
+                user.isProfileCompleted(),
+                user.getUsername()
         );
     }
 
