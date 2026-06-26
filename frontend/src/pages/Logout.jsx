@@ -1,6 +1,6 @@
 import React from 'react'
 
-const SidebarRight = () => {
+const Logout = () => {
   return (
     <div>
       
@@ -8,4 +8,4 @@ const SidebarRight = () => {
   )
 }
 
-export default SidebarRight
+export default Logout

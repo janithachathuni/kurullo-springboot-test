@@ -1,0 +1,122 @@
+import React, { useState, useEffect } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  FiHome,
+  FiFileText,
+  FiCheckSquare,
+  FiMap,
+  FiBell,
+  FiMessageSquare,
+  FiSettings,
+  FiLogOut,
+  FiPlus
+} from 'react-icons/fi';
+
+const Sidebar = () => {
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) { window.location.href = '/login'; return; }
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) setCurrentUser(user);
+    } catch (err) {
+      console.error('Failed to parse user', err);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  };
+
+  const navItems = [
+    { path: '/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
+    { path: currentUser ? `/${currentUser.username}` : '/blog', icon: <FiFileText size={20} />, label: 'Blog' },
+    { path: '/checklists', icon: <FiCheckSquare size={20} />, label: 'Checklists' },
+    { path: '/trips', icon: <FiMap size={20} />, label: 'Trips' },
+    { path: '/notifications', icon: <FiBell size={20} />, label: 'Notifications' },
+    { path: '/forum', icon: <FiMessageSquare size={20} />, label: 'Forum' },
+    { path: '/settings', icon: <FiSettings size={20} />, label: 'Settings' },
+  ];
+
+  return (
+    <div
+      className="fixed top-0 left-0 h-screen w-[220px] flex flex-col"
+      style={{
+        backgroundColor: "var(--bg-card)",
+        borderRight: "1px solid var(--border)",
+      }}
+    >
+      {/* Logo */}
+      <div className="p-6 pb-2">
+        <NavLink to="/">
+          <h2 className="text-2xl font-extrabold" style={{ color: "var(--accent)" }}>Kurullo</h2>
+        </NavLink>
+      </div>
+
+      {/* User info */}
+      {currentUser && (
+        <div className="px-6 py-3 mb-2">
+          <p className="text-sm font-semibold truncate" style={{ color: "var(--text-primary)" }}>
+            {currentUser.displayName || currentUser.username}
+          </p>
+          <p className="text-xs truncate" style={{ color: "var(--text-secondary)" }}>
+            @{currentUser.username}
+          </p>
+        </div>
+      )}
+
+      {/* Nav Items */}
+      <div className="flex-1 overflow-y-auto py-2">
+        <nav className="space-y-1 px-3">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive ? 'font-semibold' : ''}`
+              }
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? "var(--bg-secondary)" : "transparent",
+                color: isActive ? "var(--accent)" : "var(--text-secondary)",
+              })}
+            >
+              <span className="mr-3">{item.icon}</span>
+              <span className="font-medium text-sm">{item.label}</span>
+            </NavLink>
+          ))}
+        </nav>
+      </div>
+
+      {/* Create Post */}
+      <div className="px-4 pb-3">
+        <button
+          onClick={() => {/* open create post modal */}}
+          className="flex items-center justify-center w-full px-4 py-3 rounded-lg font-medium text-sm transition hover:opacity-90"
+          style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+        >
+          <FiPlus size={18} className="mr-2" />
+          Create Post
+        </button>
+      </div>
+
+      {/* Logout */}
+      <div className="px-4 pb-6" style={{ borderTop: "1px solid var(--border)" }}>
+        <button
+          onClick={handleLogout}
+          className="flex items-center w-full px-3 py-3 rounded-lg text-sm transition hover:opacity-80"
+          style={{ color: "var(--text-secondary)" }}
+        >
+          <FiLogOut size={18} className="mr-3" />
+          <span className="font-medium">Logout</span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
