@@ -1,4 +1,4 @@
-# 🐦 Kurullo - Spring Boot Backend Test
+# Kurullo - Spring Boot Backend Test
 
 > A Spring Boot backend developed as a learning project for **Kurullo**, a birdwatching and bird tracking application.
 
