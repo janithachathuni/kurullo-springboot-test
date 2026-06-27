@@ -42,6 +42,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         response.sendRedirect("http://localhost:5173/oauth2/success?token=" + token
                 + "&role=" + user.getRole()
                 + "&isFirstLogin=" + user.isFirstLogin()
-                + "&profileCompleted=" + user.isProfileCompleted());
+                + "&profileCompleted=" + user.isProfileCompleted()
+                + "&username=" + user.getUsername());
     }
 }
