@@ -45,16 +45,16 @@ const [currentUser, setCurrentUser] = useState(() => {
 
   return (
     <div
-      className="fixed top-0 left-0 h-screen w-[220px] flex flex-col"
+      className="fixed top-0 left-0 h-screen w-[20%] flex flex-col"
       style={{
         backgroundColor: "var(--bg-card)",
         borderRight: "1px solid var(--border)",
       }}
     >
       {/* Logo */}
-      <div className="p-6 pb-2">
+      <div className="p-1 pt-4">
         <NavLink to="/">
-          <h2 className="text-2xl font-extrabold" style={{ color: "var(--accent)" }}>Kurullo</h2>
+          <h2 className="text-2xl font-extrabold" style={{ color: "var(--accent)", textAlign: "center", }}>Kurullo</h2>
         </NavLink>
       </div>
 
@@ -93,10 +93,10 @@ const [currentUser, setCurrentUser] = useState(() => {
       </div>
 
       {/* Logout */}
-      <div className="px-4 pb-6" style={{ borderTop: "1px solid var(--border)" }}>
+      <div className="px-4 py-4" style={{ borderTop: "1px solid var(--border)" }}>
         <button
           onClick={handleLogout}
-          className="flex items-center w-full px-3 py-3 rounded-lg text-sm transition hover:opacity-80"
+          className="flex items-center w-full px-1 py-1 rounded-lg text-sm transition hover:opacity-80"
           style={{ color: "var(--text-secondary)" }}
         >
           <FiLogOut size={18} className="mr-3" />
