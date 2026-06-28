@@ -1,168 +1,241 @@
-// CreateProfile.jsx
+import React, { useState } from "react";
+import { FaCamera } from "react-icons/fa";
+import createprofilebird from "../../Assets/createprofilebird.gif";
+import bannerimg from "../../Assets/bannerimg.png";
+import default_profile_pic from "../../Assets/default_profile_pic.png";
 
-import React, { useState, useRef, useEffect } from "react";
-
-const CreateProfile = () => {
-  const [form, setForm] = useState({ displayName: "", bio: "" });
-  const [profilePic, setProfilePic] = useState(null);
-  const [bannerPic, setBannerPic] = useState(null);
-  const [profilePicPreview, setProfilePicPreview] = useState(null);
-  const [bannerPicPreview, setBannerPicPreview] = useState(null);
-  const [error, setError] = useState("");
+const CreateProfile = ({ onComplete }) => {
+  const [step, setStep] = useState(0);
+  const [formData, setFormData] = useState({
+    name: "",
+    bio: "",
+    profilePic: null,
+    bannerPic: null,
+  });
   const [loading, setLoading] = useState(false);
-  const profilePicRef = useRef();
-  const bannerPicRef = useRef();
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) window.location.href = "/login";
-  }, []);
+  const [previewUrls, setPreviewUrls] = useState({
+    profilePic: null,
+    bannerPic: null,
+  });
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleFileChange = (e, type) => {
     const file = e.target.files[0];
-    if (!file) return;
-    const preview = URL.createObjectURL(file);
-    if (type === "profilePic") {
-      setProfilePic(file);
-      setProfilePicPreview(preview);
-    } else {
-      setBannerPic(file);
-      setBannerPicPreview(preview);
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        [type]: file,
+      }));
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPreviewUrls((prev) => ({
+          ...prev,
+          [type]: ev.target.result,
+        }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
-
-    try {
-      const token = localStorage.getItem("token");
-      const formData = new FormData();
-      formData.append("displayName", form.displayName);
-      formData.append("bio", form.bio);
-      if (profilePic) formData.append("profilePic", profilePic);
-      if (bannerPic) formData.append("bannerPic", bannerPic);
-
-      const res = await fetch("http://localhost:8080/api/profile/complete", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-
-      window.location.href = "/dashboard";
-    } catch (err) {
-      setError(err.message);
-    } finally {
+    
+    // Simulate API call
+    setTimeout(() => {
       setLoading(false);
-    }
+      setStep(2);
+    }, 1000);
   };
 
+  const nextStep = () => setStep((prev) => Math.min(prev + 1, 2));
+  const prevStep = () => setStep((prev) => Math.max(prev - 1, 0));
+
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* Banner */}
-        <div
-          className="h-36 bg-gray-300 bg-cover bg-center cursor-pointer flex items-center justify-center group relative"
-          style={
-            bannerPicPreview
-              ? { backgroundImage: `url(${bannerPicPreview})` }
-              : {}
-          }
-          onClick={() => bannerPicRef.current.click()}
-        >
-          <span className="text-white text-sm bg-black/40 px-3 py-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-            {bannerPicPreview ? "Change banner" : "Click to upload banner"}
-          </span>
-          <input
-            ref={bannerPicRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileChange(e, "bannerPic")}
-          />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="relative bg-[var(--bg-card)] rounded-2xl p-4 w-full max-w-4xl h-[calc(100vh-1cm)] flex flex-col shadow-[var(--shadow)]">
+        {/* Navigation Arrows */}
+        {step > 0 && (
+          <button
+            onClick={prevStep}
+            disabled={loading}
+            className="absolute left-6 top-1/2 -translate-y-1/2 bg-[var(--bg-secondary)] hover:bg-[var(--border)] disabled:opacity-50 w-12 h-12 flex items-center justify-center rounded-full shadow-md z-10 text-[var(--text-primary)]"
+          >
+            &lt;
+          </button>
+        )}
+        {step < 2 && (
+          <button
+            onClick={nextStep}
+            disabled={loading}
+            className="absolute right-6 top-1/2 -translate-y-1/2 bg-[var(--bg-secondary)] hover:bg-[var(--border)] disabled:opacity-50 w-12 h-12 flex items-center justify-center rounded-full shadow-md z-10 text-[var(--text-primary)]"
+          >
+            &gt;
+          </button>
+        )}
+
+        {/* Main content container */}
+        <div className="flex-1 flex flex-col justify-center overflow-y-auto mx-16">
+          {step === 0 && (
+            <div className="text-center px-6">
+              <h2 className="text-2xl text-[var(--accent)] font-bold mb-4">Welcome to your new Kurullo account!</h2>
+              <p className="text-[var(--text-secondary)] mb-6">
+                Let's set up your birding profile to get started.
+              </p>
+              <button
+                onClick={nextStep}
+                className="bg-[var(--accent)] text-[var(--accent-text)] px-6 py-2 rounded-full hover:opacity-90 transition"
+              >
+                Start
+              </button>
+            </div>
+          )}
+
+          {step === 1 && (
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-center w-full max-w-2xl mx-auto"
+            >
+              <div className="border border-[var(--border)] rounded-lg overflow-hidden bg-[var(--bg-card)] w-full">
+                {/* Banner image */}
+                <div className="h-48 bg-[var(--bg-secondary)] relative group">
+                  <img
+                    src={
+                      previewUrls.bannerPic ||
+                      bannerimg
+                    }
+                    alt="Banner"
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Overlay with camera */}
+                  <div className="absolute inset-0 bg-[var(--accent)]/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                    <label className="cursor-pointer flex flex-col items-center text-[var(--accent-text)]">
+                      <FaCamera size={24} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, "bannerPic")}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  {/* Profile image (half inside banner) */}
+                  <div className="absolute left-6 bottom-0 translate-y-1/2 group">
+                    <div className="relative w-36 h-36">
+                      <img
+                        src={
+                          previewUrls.profilePic ||
+                          default_profile_pic
+                        }
+                        alt="Profile"
+                        className="w-36 h-36 rounded-full border-4 border-[var(--bg-card)] object-cover bg-[var(--bg-card)]"
+                      />
+                      {/* Overlay with camera */}
+                      <div className="absolute inset-0 bg-[var(--accent)]/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-full transition">
+                        <label className="cursor-pointer flex flex-col items-center text-[var(--accent-text)]">
+                          <FaCamera size={20} />
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileChange(e, "profilePic")}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Profile details */}
+                <div className="px-6 mt-20">
+                  <div className="mb-2">
+                    <label className="block mb-1 text-sm font-medium text-[var(--text-primary)]">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your display name"
+                      className="w-full border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
+                    />
+                  </div>
+
+                  <div className="mb-2">
+                    <label className="block text-sm mb-1 font-medium text-[var(--text-primary)]">
+                      Bio
+                    </label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleInputChange}
+                      placeholder="Tell us about your birding interests..."
+                      className="w-full border border-[var(--border)] bg-[var(--bg-primary)] text-[var(--text-primary)] rounded-md px-3 py-2 outline-none focus:ring-2 focus:ring-[var(--accent)] transition"
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex justify-end mb-3">
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="bg-[var(--accent)] text-[var(--accent-text)] px-6 py-2 rounded-full hover:opacity-90 disabled:opacity-50 transition"
+                    >
+                      {loading ? "Creating..." : "Save Profile"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </form>
+          )}
+
+          {step === 2 && (
+            <div className="text-center px-6">
+              <img
+                src={createprofilebird}
+                className="items-center mx-auto mb-4"
+                alt="Profile created"
+              />
+              <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-4">
+                Profile Created Successfully!
+              </h2>
+              <p className="text-[var(--text-secondary)] mb-6">
+                You're all set. Would you like to add your first birding post
+                now?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={onComplete}
+                  className="bg-[var(--bg-secondary)] text-[var(--text-primary)] px-6 py-2 rounded-full hover:bg-[var(--border)] transition"
+                >
+                  Continue to Dashboard
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Avatar */}
-        <div className="px-6">
-          <div
-            className="-mt-11 w-20 h-20 rounded-full border-4 border-white bg-gray-200 cursor-pointer overflow-hidden flex items-center justify-center hover:brightness-90 transition"
-            onClick={() => profilePicRef.current.click()}
-          >
-            {profilePicPreview ? (
-              <img
-                src={profilePicPreview}
-                alt="avatar"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-3xl text-gray-400">+</span>
-            )}
-            <input
-              ref={profilePicRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => handleFileChange(e, "profilePic")}
+        {/* Page Indicators */}
+        <div className="flex justify-center mt-1 gap-3">
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              className={`h-2 w-2 rounded-full transition-colors ${
+                step === i ? "bg-[var(--accent)]" : "bg-[var(--border)]"
+              }`}
             />
-          </div>
-
-          <div className="mt-4 mb-6">
-            <h2 className="text-xl font-bold text-gray-900">
-              Set up your profile
-            </h2>
-            <p className="text-sm text-gray-500 mt-1">
-              You can always change this later.
-            </p>
-          </div>
-
-          {error && <p className="text-sm text-red-500 mb-4">{error}</p>}
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4 pb-8">
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">
-                Display Name
-              </label>
-              <input
-                name="displayName"
-                placeholder="e.g. Hewrie Sharky"
-                value={form.displayName}
-                onChange={handleChange}
-                required
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-gray-300 transition"
-              />
-            </div>
-
-            <div className="flex flex-col gap-1">
-              <label className="text-sm font-semibold text-gray-700">Bio</label>
-              <textarea
-                name="bio"
-                placeholder="Tell the world a little about yourself..."
-                value={form.bio}
-                onChange={handleChange}
-                rows={3}
-                maxLength={500}
-                className="border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-gray-300 transition resize-y"
-              />
-              <span className="text-xs text-gray-400 text-right">
-                {form.bio.length}/500
-              </span>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-gray-900 text-white rounded-lg py-3 text-sm font-semibold hover:bg-gray-700 disabled:opacity-50 transition"
-            >
-              {loading ? "Saving..." : "Complete Profile →"}
-            </button>
-          </form>
+          ))}
         </div>
       </div>
     </div>

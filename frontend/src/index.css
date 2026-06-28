@@ -1,4 +1,6 @@
 @import "tailwindcss";
+
+
 /* 
 fonts: 
 Schibsted Grotesk
@@ -37,7 +39,7 @@ h1, h2 {
   --text-primary: #f1f1f1;
   --text-secondary: #9ca3af;
   --border: #2e2e2e;
-  --accent: #4ade80;
+  --accent: #46d97c;
   --accent-text: #0f0f0f;
   --shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
