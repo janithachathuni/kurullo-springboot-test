@@ -19,7 +19,7 @@ if (token) {
   if (role === 'ADMIN') {
     window.location.href = '/admin/dashboard'
   } else if (isFirstLogin || !profileCompleted) {
-    window.location.href = '/complete-profile'
+    window.location.href = '/create-profile'
   } else {
     window.location.href = '/dashboard'
   }

@@ -7,7 +7,10 @@ Schibsted Grotesk
 Figtree
 Pliant
 Google Sans 
-Outfit */
+Outfit
+Inter
+Manrope
+Geist */
 
 body {
   font-family: 'Schibsted Grotesk', sans-serif;
@@ -35,7 +38,7 @@ h1, h2 {
 [data-theme="dark"] {
   --bg-primary: #0f0f0f;
   --bg-secondary: #1a1a1a;
-  --bg-card: #1e1e1e;
+  --bg-card: #0b0b0b;
   --text-primary: #f1f1f1;
   --text-secondary: #9ca3af;
   --border: #2e2e2e;

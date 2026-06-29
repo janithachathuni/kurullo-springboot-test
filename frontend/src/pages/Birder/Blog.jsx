@@ -1,146 +1,128 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight';
 import bannerimg from '../../Assets/bannerimg.png';
 import default_profile_pic from '../../Assets/default_profile_pic.png';
-import { FaFeather, FaUsers, FaUserPlus, FaBinoculars } from 'react-icons/fa';
 
 const Blog = () => {
-  // Sample data - replace with actual user data
-  const userData = {
-    name: "Hewrie Sharky",
-    username: "hewriesharky",
-    lifeListCount: 342,
-    followers: 1284,
-    following: 567,
-    bio: "Rookie ornithologist. Sometimes a writer. I like to wander around in nature and mark birds on my checklists."
-  };
+  const { username } = useParams();
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`http://localhost:8080/api/profile/${username}`);
+        if (!res.ok) throw new Error('Profile not found');
+        const data = await res.json();
+        setUserData(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (username) fetchProfile();
+  }, [username]);
+
+  if (loading) return (
+    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg-primary)" }}>
+      <p style={{ color: "var(--text-secondary)" }}>Loading...</p>
+    </div>
+  );
+
+  if (error) return (
+    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: "var(--bg-primary)" }}>
+      <p style={{ color: "var(--text-secondary)" }}>{error}</p>
+    </div>
+  );
+
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const isOwnProfile = currentUser.username === username;
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
       <Sidebar />
-      <div className="flex-1 ml-0 sm:ml-16 lg:ml-[20%] mr-0 md:mr-[30%] pb-20 sm:pb-4">
-        {/* Modern Profile Header with Glassmorphism */}
-        <div 
+      <div className="flex-1 ml-0 xs:ml-16 lg:ml-[20%] mr-0 md:mr-[20%] pb-20 xs:pb-4">
+        <div
           className="relative overflow-hidden"
-          style={{ 
+          style={{
             backgroundColor: "var(--bg-card)",
-            // boxShadow: "var(--shadow)"
             borderBottomWidth: "1px",
             borderBottomColor: "var(--border)",
           }}
         >
-          {/* Banner with gradient overlay */}
+          {/* Banner */}
           <div className="relative h-48 w-full">
-            <img 
-              src={bannerimg} 
-              alt="Profile Banner" 
+            <img
+              src={userData.bannerPic || bannerimg}
+              alt="Profile Banner"
               className="w-full h-full object-cover"
             />
-            
-            {/* Edit Profile Button - floating */}
-            <button 
-              className="absolute top-4 right-4 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg flex items-center gap-2"
-              style={{ 
-                backgroundColor: "var(--accent)", 
-                color: "var(--accent-text)" 
-              }}
-            >
-              Edit Profile
-            </button>
-
+            {isOwnProfile && (
+              <button
+                className="absolute top-4 right-4 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+              >
+                Edit Profile
+              </button>
+            )}
           </div>
 
-          {/* Profile content - horizontal layout */}
-          <div className="px-6 py-4 flex items-start gap-6">
-            {/* Avatar - now with a unique frame */}
-            <div className="relative -mt-10">
-              <div className="w-28 h-28 rounded-2xl border-4 overflow-hidden transform rotate-3 transition-transform hover:rotate-0 duration-500" 
-                   style={{ borderColor: "var(--bg-card)" }}>
-                <img 
-                  src={default_profile_pic} 
-                  alt="Profile" 
-                  className="w-full h-full object-cover"
-                />
+          <div className="px-6 py-4">
+            <div className="flex items-start gap-6">
+              {/* Avatar */}
+              <div className="relative -mt-10 shrink-0">
+                <div className="w-28 h-28 rounded-2xl border-4 overflow-hidden transform rotate-3 transition-transform hover:rotate-0 duration-500"
+                     style={{ borderColor: "var(--bg-card)" }}>
+                  <img src={userData.profilePic || default_profile_pic} alt="Profile" className="w-full h-full object-cover" />
+                </div>
+                <div className="absolute -inset-1 rounded-2xl border-2 border-dashed opacity-30"
+                     style={{ borderColor: "var(--accent)" }}></div>
               </div>
-              {/* Decorative ring */}
-              <div className="absolute -inset-1 rounded-2xl border-2 border-dashed opacity-30" 
-                   style={{ borderColor: "var(--accent)" }}></div>
+
+              {/* Name + bio */}
+              <div className="flex-1 pt-2">
+                <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+                  {userData.displayName || userData.username}
+                  <span className="text-sm font-normal opacity-70" style={{ color: "var(--text-secondary)", marginTop: "7px", fontFamily: "Schibsted Grotesk" }}>
+                    @{userData.username}
+                  </span>
+                </h1>
+                {userData.bio && (
+                  <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+                    {userData.bio}
+                  </p>
+                )}
+              </div>
             </div>
 
-            {/* Info in horizontal layout */}
-            <div className="flex-1 pt-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                    {userData.name}
-                    <span className="text-sm font-normal opacity-70" style={{ color: "var(--text-secondary)", fontFamily: "Schibsted Grotesk", marginTop: "7px"}}>                      @{userData.username}
-                    </span>
-                  </h1>
-                  
-                  {/* Bio with icon */}
-                  {userData.bio && (
-                    <div className="flex items-start gap-2 mt-1">
-                      <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                        {userData.bio}
-                      </p>
-                    </div>
-                  )}
-                </div>
+            {/* Stats */}
+            <div className="flex items-center gap-6 mt-4 ml-[calc(7rem+1.5rem)]">
+              <div>
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {userData.followers.toLocaleString()}
+                </span>
+                <span className="text-xs ml-1 opacity-60" style={{ color: "var(--text-secondary)" }}>Followers</span>
               </div>
-
-              {/* Stats in a horizontal row with icons */}
-              <div className="flex items-center gap-6 mt-3">
-                {/* <div className="flex items-center gap-2 px-3 py-1 rounded-full" 
-                     style={{ backgroundColor: "var(--bg-secondary)" }}>
-                  <FaBinoculars size={14} style={{ color: "var(--accent)" }} />
-                  <div>
-                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {userData.lifeListCount}
-                    </span>
-                    <span className="text-xs ml-1 opacity-60" style={{ color: "var(--text-secondary)" }}>
-                      Life List
-                    </span>
-                  </div>
-                </div> */}
-                
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full" 
-                     style={{ backgroundColor: "var(--bg-secondary)" }}>
-                  <FaUsers size={14} style={{ color: "var(--accent)" }} />
-                  <div>
-                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {userData.followers.toLocaleString()}
-                    </span>
-                    <span className="text-xs ml-1 opacity-60" style={{ color: "var(--text-secondary)" }}>
-                      Followers
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full" 
-                     style={{ backgroundColor: "var(--bg-secondary)" }}>
-                  <FaUserPlus size={14} style={{ color: "var(--accent)" }} />
-                  <div>
-                    <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                      {userData.following.toLocaleString()}
-                    </span>
-                    <span className="text-xs ml-1 opacity-60" style={{ color: "var(--text-secondary)" }}>
-                      Following
-                    </span>
-                  </div>
-                </div>
+              <div>
+                <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {userData.following.toLocaleString()}
+                </span>
+                <span className="text-xs ml-1 opacity-60" style={{ color: "var(--text-secondary)" }}>Following</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Blog Content */}
-        <div className="p-4 rounded-lg" style={{ backgroundColor: "var(--bg-primary)" }}>
-          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
-            Blog
-          </h1>
+        <div className="p-4" style={{ backgroundColor: "var(--bg-primary)" }}>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Blog</h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-            Your posts and activity.
+            {isOwnProfile ? 'Your posts and activity.' : `${userData.displayName || userData.username}'s posts.`}
           </p>
         </div>
       </div>

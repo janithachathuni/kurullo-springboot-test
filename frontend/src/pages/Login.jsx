@@ -29,7 +29,7 @@ localStorage.setItem("user", JSON.stringify({ username: data.username, role: dat
 if (data.role === "ADMIN") {
   window.location.href = "/admin/dashboard";
 } else if (data.isFirstLogin || !data.profileCompleted) {
-  window.location.href = "/complete-profile";
+  window.location.href = "/create-profile";
 } else {
   window.location.href = "/dashboard";
 }

@@ -40,4 +40,13 @@ public ResponseEntity<?> completeProfile(
         return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
     }
 }
+
+@GetMapping("/{username}")
+public ResponseEntity<?> getProfile(@PathVariable String username) {
+    try {
+        return ResponseEntity.ok(profileService.getProfileByUsername(username));
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
 }
