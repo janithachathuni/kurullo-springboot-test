@@ -20,8 +20,8 @@ const Sidebar = () => {
 
   useEffect(() => {
     const check = () => {
-      setIsTablet(window.innerWidth >= 640 && window.innerWidth < 1024);
-  setIsMobile(window.innerWidth < 640);
+      setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024);
+      setIsMobile(window.innerWidth < 768);
     };
     check();
     window.addEventListener('resize', check);

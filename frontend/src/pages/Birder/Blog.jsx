@@ -4,12 +4,14 @@ import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight';
 import bannerimg from '../../Assets/bannerimg.png';
 import default_profile_pic from '../../Assets/default_profile_pic.png';
+import Post from "./Post";
 
 const Blog = () => {
   const { username } = useParams();
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -46,49 +48,102 @@ const Blog = () => {
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
       <Sidebar />
-      <div className="flex-1 ml-0 xs:ml-16 lg:ml-[20%] mr-0 md:mr-[20%] pb-20 xs:pb-4">
+      <div className="flex-1 ml-0 md:ml-16 lg:ml-[20%] pb-20 md:pb-4">
         <div
-          className="relative overflow-hidden"
+          className="relative"
           style={{
             backgroundColor: "var(--bg-card)",
             borderBottomWidth: "1px",
             borderBottomColor: "var(--border)",
           }}
         >
-          {/* Banner */}
-          <div className="relative h-48 w-full">
+          {/* Banner — 3:1 aspect ratio via padding trick */}
+          <div className="relative w-full overflow-hidden" style={{ paddingTop: "33.333%" }}>
             <img
               src={userData.bannerPic || bannerimg}
               alt="Profile Banner"
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
             />
-            {isOwnProfile && (
-              <button
-                className="absolute top-4 right-4 px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
-              >
-                Edit Profile
-              </button>
-            )}
+
+            {/* Action button — top right of banner */}
+            <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+              {isOwnProfile ? (
+                <button
+                  className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                    style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                  >
+                    Follow
+                  </button>
+                  <div className="relative">
+                    <button
+                      onClick={() => setMenuOpen((v) => !v)}
+                      className="w-8 h-8 flex items-center justify-center rounded-full transition hover:opacity-80"
+                      style={{ backgroundColor: "var(--bg-secondary)", color: "var(--text-primary)" }}
+                    >
+                      ···
+                    </button>
+                    {menuOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                        <div
+                          className="absolute right-0 mt-1 w-36 rounded-xl shadow-lg z-20 overflow-hidden"
+                          style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}
+                        >
+                          <button
+                            onClick={() => setMenuOpen(false)}
+                            className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-80"
+                            style={{ color: "var(--text-primary)", backgroundColor: "transparent" }}
+                          >
+                            Block
+                          </button>
+                          <button
+                            onClick={() => setMenuOpen(false)}
+                            className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-80"
+                            style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
+                          >
+                            Share
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="px-6 py-4">
             <div className="flex items-start gap-6">
               {/* Avatar */}
               <div className="relative -mt-10 shrink-0">
-                <div className="w-28 h-28 rounded-2xl border-4 overflow-hidden transform rotate-3 transition-transform hover:rotate-0 duration-500"
-                     style={{ borderColor: "var(--bg-card)" }}>
+                <div
+                  className="w-28 h-28 rounded-2xl border-4 overflow-hidden transform rotate-3 transition-transform hover:rotate-0 duration-500"
+                  style={{ borderColor: "var(--bg-card)" }}
+                >
                   <img src={userData.profilePic || default_profile_pic} alt="Profile" className="w-full h-full object-cover" />
                 </div>
-                <div className="absolute -inset-1 rounded-2xl border-2 border-dashed opacity-30"
-                     style={{ borderColor: "var(--accent)" }}></div>
+                <div
+                  className="absolute -inset-1 rounded-2xl border-2 border-dashed opacity-30"
+                  style={{ borderColor: "var(--accent)" }}
+                />
               </div>
 
               {/* Name + bio */}
               <div className="flex-1 pt-2">
                 <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                   {userData.displayName || userData.username}
-                  <span className="text-sm font-normal opacity-70" style={{ color: "var(--text-secondary)", marginTop: "7px", fontFamily: "Schibsted Grotesk" }}>
+                  <span
+                    className="text-sm font-normal opacity-70"
+                    style={{ color: "var(--text-secondary)", marginTop: "7px", fontFamily: "Schibsted Grotesk" }}
+                  >
                     @{userData.username}
                   </span>
                 </h1>
@@ -101,7 +156,7 @@ const Blog = () => {
             </div>
 
             {/* Stats */}
-            <div className="flex items-center gap-6 mt-4 ml-[calc(7rem+1.5rem)]">
+            <div className="flex items-center gap-6 mt-4 sm:ml-[calc(7rem+1.5rem)]">
               <div>
                 <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                   {userData.followers.toLocaleString()}
@@ -124,6 +179,7 @@ const Blog = () => {
           <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
             {isOwnProfile ? 'Your posts and activity.' : `${userData.displayName || userData.username}'s posts.`}
           </p>
+          <Post />
         </div>
       </div>
       <SidebarRight />

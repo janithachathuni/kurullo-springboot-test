@@ -3,7 +3,7 @@ import React from "react";
 const RightSidebar = () => {
   return (
     <div
-      className="fixed top-0 right-0 h-screen flex-col hidden md:flex w-[30%]"
+      className="hidden lg:flex flex-col sticky top-0 h-screen shrink-0 w-[30%]"
       style={{ backgroundColor: "var(--bg-card)", borderLeft: "1px solid var(--border)" }}
     >
       <div className="flex-1 overflow-y-auto p-4">
