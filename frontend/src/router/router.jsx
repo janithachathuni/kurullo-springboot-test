@@ -5,6 +5,8 @@ import Home from "../components/Home";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import OAuth2Success from "../pages/OAuth2Success";
+import ForgotPassword from "../pages/ForgotPassword";
+import ChangePassword from "../pages/ChangePassword";
 
 // Birder
 import CompleteRegistration from "../pages/CompleteRegistration";
@@ -16,6 +18,10 @@ import BirderChecklists from "../pages/Birder/Checklists";
 import BirderForum from "../pages/Birder/Forum";
 import BirderNotifications from "../pages/Birder/Notifications";
 import BirderTrips from "../pages/Birder/Trips";
+import SingleChecklist from "../pages/Birder/SingleChecklist";
+import SingleTrip from "../pages/Birder/SingleTrip";
+import EditProfile from "../pages/Birder/EditProfile";
+import Discussion from "../pages/Birder/Discussion";
 
 // Admin
 import AdminDashboard from "../pages/Admin/Dashboard";
@@ -26,6 +32,8 @@ import AdminNotifications from "../pages/Admin/Notifications";
 import AdminSettings from "../pages/Admin/Settings";
 import AdminStatistics from "../pages/Admin/Statistics";
 import AdminAdvertisements from "../pages/Admin/Advertisements";
+import AdminAddBird from "../pages/Admin/AddBird";
+import AdminEditBird from "../pages/Admin/EditBird";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -33,6 +41,8 @@ const router = createBrowserRouter([
   { path: "/register", element: <Register /> },
   { path: "/oauth2/success", element: <OAuth2Success /> },
   { path: "/complete-registration", element: <CompleteRegistration /> },
+  { path: "/forgot-password", element: <ForgotPassword /> },
+  { path: "/change-password", element: <ChangePassword /> },
 
   // birder
   { path: "/create-profile", element: <CreateProfile /> },
@@ -43,6 +53,10 @@ const router = createBrowserRouter([
   { path: "/trips", element: <BirderTrips/>},
   { path: "/notifications", element: <BirderNotifications/>},
   { path: "/forum", element: <BirderForum/>},
+  { path: "/checklists/:checklistId", element: <SingleChecklist/>},
+  { path: "/trips/:tripId", element: <SingleTrip/>},
+  { path: "/forum/:forumId", element: <Discussion/>},
+  // { path: "/edit-profile", element: <EditProfile/>},
   
   //admin
   { path: "/admin/dashboard", element: <AdminDashboard/>},
@@ -53,6 +67,8 @@ const router = createBrowserRouter([
   { path: "/admin/settings", element: <AdminSettings/>},
   { path: "/admin/statistics", element: <AdminStatistics/>},
   { path: "/admin/advertisements", element: <AdminAdvertisements/>},
+  { path: "/admin/add-bird", element: <AdminAddBird/>},
+  { path: "/admin/edit-bird/:birdId", element: <AdminEditBird/>},
 
 
   { path: "*", element: <Navigate to="/" /> },
