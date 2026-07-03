@@ -1,11 +1,12 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import signupImage1 from "../assets/signup_image1.jpg";
 
 const Register = () => {
   const [form, setForm] = useState({ username: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -33,8 +34,34 @@ const Register = () => {
     window.location.href = "http://localhost:8080/oauth2/authorization/google";
   };
 
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex relative">
+      {/* Back Arrow Button */}
+      <button
+        onClick={handleGoBack}
+        className="absolute top-6 right-6 z-10 p-2 bg-white/80 hover:bg-white rounded-full border-1 border-amber-700/35 transition-all duration-200 hover:scale-110"
+        aria-label="Go back"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-6 w-6 text-amber-900"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          />
+        </svg>
+      </button>
+
       {/* Image Column - Background */}
       <div
         className="w-1/2 bg-cover bg-center border-r border-black"

@@ -23,13 +23,14 @@ h1, h2 {
   font-family: 'Besley', serif;
 }
 
-:root {
+/* :root {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f6f5;
   --bg-card: #ffffff;
   --text-primary: #111111;
   --text-secondary: #4b5563;
   --border: #d1d5db;
+  --border-opacity: 0.1;
   --accent: #143829;
   --accent-text: #ffffff;
   --shadow: 0 1px 3px rgba(0,0,0,0.1);
@@ -42,7 +43,34 @@ h1, h2 {
   --text-primary: #f1f1f1;
   --text-secondary: #9ca3af;
   --border: #2e2e2e;
+  --border-opacity: 0.1;
   --accent: #46d97c;
+  --accent-text: #0f0f0f;
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+} */
+
+
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f6f5;
+  --bg-card: #ffffff;
+  --text-primary: #111111;
+  --text-secondary: #4b5563;
+  --border: rgba(209, 213, 219, 0.7);
+  --accent: #143829;
+  --accent-text: #ffffff;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-card: #0b0b0b;
+  --text-primary: #f1f1f1;
+  --text-secondary: #9ca3af;
+  /* --border: rgba(46, 46, 46, 0.5); */
+    --border: #2e2e2e;
+  --accent: #8fc6a3;
   --accent-text: #0f0f0f;
   --shadow: 0 1px 3px rgba(0,0,0,0.4);
 }

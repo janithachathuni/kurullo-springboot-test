@@ -9,7 +9,10 @@ import {
   FiMonitor,
   FiSettings,
   FiLogOut,
-  FiDatabase
+  FiDatabase,
+  FiFlag,
+  FiAtSign,
+  FiImage,
 } from 'react-icons/fi';
 
 const AdminSidebar = () => {
@@ -29,10 +32,12 @@ if (user?.role !== 'ADMIN') { window.location.href = '/dashboard'; }
     { path: '/admin/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
     { path: '/admin/bird-data', icon: <FiDatabase size={20} />, label: 'Bird Database' },
     { path: '/admin/statistics', icon: <FiBarChart2 size={20} />, label: 'Statistics' },
+    { path: '/admin/events-articles', icon: <FiImage size={20} />, label: 'Events & Articles' },
     { path: '/admin/content-moderation', icon: <FiShield size={20} />, label: 'Content Moderation' },
     { path: '/admin/manage-moderators', icon: <FiUsers size={20} />, label: 'Manage Moderators' },
     { path: '/admin/notifications', icon: <FiBell size={20} />, label: 'Notifications' },
     { path: '/admin/advertisements', icon: <FiMonitor size={20} />, label: 'Advertisements' },
+    { path: '/admin/reports', icon: <FiFlag size={20} />, label: 'Reports' },
     { path: '/admin/settings', icon: <FiSettings size={20} />, label: 'Settings' },
   ];
 
@@ -52,9 +57,15 @@ if (user?.role !== 'ADMIN') { window.location.href = '/dashboard'; }
       </div>
 
 
+
       {/* Nav Items */}
       <div className="flex-1 overflow-y-auto py-2">
         <nav className="space-y-1 px-3">
+          {/* User info */}
+          <div className="flex items-center px-2 py-1">
+            <span className="mr-3"><FiAtSign size={10} style={{ color: "var(--accent)" }} /></span>
+            <span className="font-small text-sm" style={{ color: "var(--accent)" }}>{user?.username}</span>
+          </div>
           {navItems.map((item) => (
             <NavLink
               key={item.path}

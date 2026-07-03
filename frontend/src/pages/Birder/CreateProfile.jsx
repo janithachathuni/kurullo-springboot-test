@@ -142,9 +142,9 @@ const CreateProfile = ({ onComplete }) => {
                   className="w-full h-full object-cover"
                 />
                 
-                {/* Camera icon overlay on banner */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
-                  <label className="cursor-pointer p-3 rounded-full bg-[var(--accent)] text-[var(--accent-text)] hover:scale-110 transition-transform duration-300">
+                {/* Camera icon overlay on banner - always visible */}
+                <div className="absolute inset-0 bg-black/30 flex items-center justify-center transition-opacity duration-300">
+                  <label className="cursor-pointer p-3 rounded-full bg-[var(--accent)] text-[var(--accent-text)] transition-all duration-300 hover:scale-125 hover:bg-opacity-90 opacity-80 hover:opacity-100">
                     <FaCamera size={24} />
                     <input
                       type="file"
@@ -174,9 +174,9 @@ const CreateProfile = ({ onComplete }) => {
                     <div className="absolute -inset-1 rounded-2xl border-2 border-dashed opacity-30"
                         style={{ borderColor: "var(--accent)" }}></div>
                     
-                    {/* Camera overlay on avatar */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded-2xl transition-opacity duration-300">
-                      <label className="cursor-pointer p-2 rounded-full bg-[var(--accent)] text-[var(--accent-text)] hover:scale-110 transition-transform duration-300">
+                    {/* Camera overlay on avatar - always visible */}
+                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center rounded-2xl transition-all duration-300">
+                      <label className="cursor-pointer p-2 rounded-full bg-[var(--accent)] text-[var(--accent-text)] transition-all duration-300 hover:scale-125 hover:bg-opacity-90 opacity-80 hover:opacity-100">
                         <FaCamera size={18} />
                         <input
                           type="file"

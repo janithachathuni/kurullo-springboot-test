@@ -1,6 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import navbarlogo from "../assets/navbarlogo.png";
+import birdlogo from "../assets/birdlogo.png";
+import birdlogo3 from "../assets/birdlogo3.png";
+import birdlogo4 from "../assets/birdlogo4.png";
 import profilepic from "../assets/default_profile_pic.png";
 
 const Navbar = () => {
@@ -8,6 +11,16 @@ const Navbar = () => {
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isLoggedIn = !!user;
+
+  const [isDark, setIsDark] = useState(document.documentElement.getAttribute('data-theme') === 'dark');
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   const handleProfileClick = () => {
     if (user?.role === "ADMIN") {
@@ -18,23 +31,22 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white border-b border-black py-3 px-6">
+    <nav
+      className="py-3 px-6"
+      style={{
+        backgroundColor: "var(--bg-card)",
+        borderBottom: "1px solid var(--border)",
+        color: "var(--text-primary)",
+      }}
+    >
       <div className="container mx-auto flex items-center justify-between">
         {/* Left-aligned logo and name */}
-        <div className="flex items-center">
-          <div className='flex items-center gap-3 text-3xl font-extrabold text-[#506142]'>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 text-3xl font-extrabold" style={{ color: "var(--accent)" }}>
             <Link to="/"><h1>Kurullo</h1></Link>
             <img
-              src={navbarlogo}
+              src={isDark ? birdlogo4 : birdlogo}
               className="h-5 -ml-5 -mt-7"
-              alt="Kurullo logo"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            <img
-              src={navbarlogo}
-              className="h-12 -ml-10 -mt-25"
               alt="Kurullo logo"
             />
           </div>
@@ -42,38 +54,40 @@ const Navbar = () => {
 
         {/* Right-aligned items */}
         <div className="flex items-center space-x-10">
-          <Link to="/about" className="text-gray-900 hover:text-amber-900">
+          <Link to="/about" className="hover:opacity-70 transition" style={{ color: "var(--text-primary)" }}>
             About
           </Link>
-          <Link to="/events" className="text-gray-900 hover:text-amber-900">
+          <Link to="/events" className="hover:opacity-70 transition" style={{ color: "var(--text-primary)" }}>
             Events
           </Link>
-          <Link to="/articles" className="text-gray-900 hover:text-amber-900">
+          <Link to="/articles" className="hover:opacity-70 transition" style={{ color: "var(--text-primary)" }}>
             Articles
           </Link>
-          <Link to="/birdlist" className="text-gray-900 hover:text-amber-900">
+          <Link to="/birdlist" className="hover:opacity-70 transition" style={{ color: "var(--text-primary)" }}>
             Birds of Sri Lanka
           </Link>
-          
-          {/* Conditional rendering based on login status */}
+
           {isLoggedIn ? (
-            // Show profile picture if logged in
-            <button 
+            <button
               onClick={handleProfileClick}
-              className="flex items-center justify-center rounded-full border-2 border-black hover:border-amber-900 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500"
-              style={{ width: '40px', height: '40px' }}
+              className="flex items-center justify-center rounded-full border-2 hover:opacity-80 transition focus:outline-none"
+              style={{ width: "40px", height: "40px", borderColor: "var(--border)" }}
             >
-              <img 
-                src={profilepic} 
-                alt="Profile" 
+              <img
+                src={profilepic}
+                alt="Profile"
                 className="w-8 h-8 rounded-full object-cover"
               />
             </button>
           ) : (
-            // Show sign in button if not logged in
-            <Link 
-              to="/login" 
-              className="border border-black bg-[#f8eec8] px-4 py-2 hover:border-black hover:bg-amber-100 transition-colors"
+            <Link
+              to="/login"
+              className="border px-4 py-2 hover:opacity-80 transition"
+              style={{
+                borderColor: "var(--border)",
+                backgroundColor: "var(--bg-secondary)",
+                color: "var(--text-primary)",
+              }}
             >
               Sign in
             </Link>

@@ -7,6 +7,14 @@ import Register from "../pages/Register";
 import OAuth2Success from "../pages/OAuth2Success";
 import ForgotPassword from "../pages/ForgotPassword";
 import ChangePassword from "../pages/ChangePassword";
+import Error from "../pages/Error";
+import Events from "../pages/Events";
+import Articles from "../pages/Articles";
+import About from "../pages/About";
+import Birdlist from "../pages/BirdList";
+
+// Birds
+import Bird from "../pages/Bird";
 
 // Birder
 import CompleteRegistration from "../pages/CompleteRegistration";
@@ -34,6 +42,8 @@ import AdminStatistics from "../pages/Admin/Statistics";
 import AdminAdvertisements from "../pages/Admin/Advertisements";
 import AdminAddBird from "../pages/Admin/AddBird";
 import AdminEditBird from "../pages/Admin/EditBird";
+import AdminReports from "../pages/Admin/Reports";
+import AdminEventsArticlesManage from "../pages/Admin/EventsArticlesManage";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -43,6 +53,11 @@ const router = createBrowserRouter([
   { path: "/complete-registration", element: <CompleteRegistration /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/change-password", element: <ChangePassword /> },
+  { path: "/bird/:birdId", element: <Bird /> },
+  { path: "/events", element: <Events /> },
+  { path: "/articles", element: <Articles /> },
+  { path: "/about", element: <About /> },
+  { path: "/birdlist", element: <Birdlist /> },
 
   // birder
   { path: "/create-profile", element: <CreateProfile /> },
@@ -69,9 +84,14 @@ const router = createBrowserRouter([
   { path: "/admin/advertisements", element: <AdminAdvertisements/>},
   { path: "/admin/add-bird", element: <AdminAddBird/>},
   { path: "/admin/edit-bird/:birdId", element: <AdminEditBird/>},
+  { path: "/admin/reports", element: <AdminReports/>},
+  { path: "/admin/events-articles", element: <AdminEventsArticlesManage/>},
 
 
-  { path: "*", element: <Navigate to="/" /> },
+
+  { path: "*", element: <Error /> },
+  { path: "/404", element: <Error /> },
+{ path: "*", element: <Navigate to="/404" replace /> },
 ]);
 
 export default router;

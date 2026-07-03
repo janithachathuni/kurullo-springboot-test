@@ -6,7 +6,9 @@ import backgroundimg2 from "../assets/backgroundimg2.jpg";
 import backgroundimg3 from "../assets/backgroundimg3.jpg";
 import backgroundimg4 from "../assets/backgroundimg4.jpg";
 import birdlogo from "../assets/birdlogo.png";
+import birdlogo2 from "../assets/birdlogo2.png";
 import Navbar from "./Navbar";
+import Footer from "./Footer";
 
 const galleryPhotos = [
   "https://source.unsplash.com/400x300/?bird,1",
@@ -40,6 +42,17 @@ const Home = () => {
   const [showNavbar, setShowNavbar] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(null);
 
+    // Add this near your other useState hooks
+const [isDark, setIsDark] = useState(document.documentElement.getAttribute('data-theme') === 'dark');
+
+useEffect(() => {
+  const observer = new MutationObserver(() => {
+    setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+  });
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  return () => observer.disconnect();
+}, []);
+
   useEffect(() => {
     const handleScroll = () => setShowNavbar(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
@@ -68,6 +81,8 @@ const Home = () => {
     setActiveImageIndex(activeImageIndex === index ? null : index);
   };
 
+
+
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
 
@@ -86,7 +101,7 @@ const Home = () => {
               <h1 className="text-xl mb-7 md:text-[5rem] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Kurullo
               </h1>
-              <img src={birdlogo} className="h-12 -ml-10 -mt-25" alt="Kurullo logo" />
+              <img src={isDark ? birdlogo2 : birdlogo} className="h-12 -ml-10 -mt-25" alt="Kurullo logo" />
             </div>
             <p className="mb-15 md:text-[16px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               Join a vibrant community of bird enthusiasts. Share your sightings, learn from others, and contribute to bird conservation.
@@ -189,6 +204,8 @@ const Home = () => {
           ))}
         </div>
       </section>
+
+      <Footer />
 
     </div>
   );
