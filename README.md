@@ -12,6 +12,23 @@ This project was created to gain hands-on experience with **Spring Boot** by bui
 
 This repository contains the **Spring Boot backend** used for experimentation, learning, and feature implementation.
 
+### User Functionality
+- For you page
+- Upload photos
+- Interact with other users through likes, shares, comments
+- Mark checklists
+- Mark trips
+- Forum (Moderation managed through Admin + select moderators)
+- Get notifications
+
+### Admin Functionality
+- Manages website and bird list
+- See statistics and reports
+- Content moderation
+- User moderation
+- Post advertisements
+- Arrange events, post articles
+
 ---
 
 ## Tech Stack
@@ -25,7 +42,7 @@ This repository contains the **Spring Boot backend** used for experimentation, l
 - Spring Boot
 
 ### Database
-- PostgreSQL
+- PostgreSQL (online on Supabase)
 
 ---
 

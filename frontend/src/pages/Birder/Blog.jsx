@@ -14,20 +14,27 @@ const Blog = () => {
   const [error, setError] = useState(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`http://localhost:8080/api/profile/${username}`);
+        const token = localStorage.getItem('token');
+        const res = await fetch(`http://localhost:8080/api/profile/${username}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
         if (!res.ok) {
           navigate('/404', { replace: true });
           return;
         }
         const data = await res.json();
         setUserData(data);
+        setIsFollowing(!!data.isFollowing);
+        setIsBlocked(!!data.isBlocked);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -39,6 +46,64 @@ const Blog = () => {
 
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const isOwnProfile = currentUser.username === username;
+
+  const authHeaders = () => {
+    const token = localStorage.getItem('token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
+  const handleFollowToggle = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
+    const endpoint = isFollowing ? 'unfollow' : 'follow';
+    try {
+      const res = await fetch(`http://localhost:8080/api/profile/${username}/${endpoint}`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+
+      setIsFollowing(!isFollowing);
+      setUserData((prev) => ({
+        ...prev,
+        followers: prev.followers + (isFollowing ? -1 : 1),
+      }));
+    } catch (err) {
+      console.error(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleBlockToggle = async () => {
+    if (actionLoading) return;
+    setActionLoading(true);
+    const endpoint = isBlocked ? 'unblock' : 'block';
+    try {
+      const res = await fetch(`http://localhost:8080/api/profile/${username}/${endpoint}`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Something went wrong');
+
+      setIsBlocked(!isBlocked);
+      // blocking also removes any follow relationship server-side
+      if (!isBlocked && isFollowing) {
+        setIsFollowing(false);
+        setUserData((prev) => ({ ...prev, followers: prev.followers - 1 }));
+      }
+      setMenuOpen(false);
+    } catch (err) {
+      console.error(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   // Skeleton loading component
   const SkeletonLoading = () => (
@@ -98,12 +163,6 @@ const Blog = () => {
           </div>
         </div>
       </div>
-
-      {/* Blog Content skeleton - only title and description, no post lines */}
-      {/* <div className="p-4" style={{ backgroundColor: "var(--bg-primary)" }}>
-        <div className="h-8 w-16 rounded animate-pulse mb-2" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
-        <div className="h-4 w-48 rounded animate-pulse" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
-      </div> */}
     </>
   );
 
@@ -149,10 +208,16 @@ const Blog = () => {
                   ) : (
                     <>
                       <button
-                        className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                        style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                        onClick={handleFollowToggle}
+                        disabled={actionLoading}
+                        className="px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 hover:scale-105 hover:shadow-lg disabled:opacity-60 disabled:hover:scale-100"
+                        style={
+                          isFollowing
+                            ? { backgroundColor: "var(--bg-secondary)", color: "var(--text-primary)", border: "1px solid var(--border)" }
+                            : { backgroundColor: "var(--accent)", color: "var(--accent-text)" }
+                        }
                       >
-                        Follow
+                        {isFollowing ? "Unfollow" : "Follow"}
                       </button>
                       <div className="relative">
                         <button
@@ -170,11 +235,12 @@ const Blog = () => {
                               style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}
                             >
                               <button
-                                onClick={() => setMenuOpen(false)}
-                                className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-80"
+                                onClick={handleBlockToggle}
+                                disabled={actionLoading}
+                                className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-80 disabled:opacity-60"
                                 style={{ color: "var(--text-primary)", backgroundColor: "transparent" }}
                               >
-                                Block
+                                {isBlocked ? "Blocked" : "Block"}
                               </button>
                               <button
                                 onClick={() => setMenuOpen(false)}
@@ -247,10 +313,6 @@ const Blog = () => {
 
             {/* Blog Content */}
             <div className="p-4" style={{ backgroundColor: "var(--bg-primary)" }}>
-              {/* <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Blog</h1>
-              <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                {isOwnProfile ? 'Your posts and activity.' : `${userData.displayName || userData.username}'s posts.`}
-              </p> */}
               <Post />
             </div>
           </>
@@ -259,9 +321,9 @@ const Blog = () => {
       <SidebarRight />
 
       {/* Edit Profile Popup */}
-      <EditProfile 
-        isOpen={showEditProfile} 
-        onClose={() => setShowEditProfile(false)} 
+      <EditProfile
+        isOpen={showEditProfile}
+        onClose={() => setShowEditProfile(false)}
         userData={userData}
       />
     </div>

@@ -1,8 +1,14 @@
 package com.example.kurullo.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
-import java.util.List;
 
 @Entity
 @Table(name = "profiles")
@@ -23,19 +29,4 @@ public class Profile {
 
     @Column(length = 500)
     private String bio;
-
-    @ElementCollection
-    @CollectionTable(name = "profile_followers", joinColumns = @JoinColumn(name = "profile_id"))
-    @Column(name = "follower_id")
-    private List<Long> followers;
-
-    @ElementCollection
-    @CollectionTable(name = "profile_following", joinColumns = @JoinColumn(name = "profile_id"))
-    @Column(name = "following_id")
-    private List<Long> following;
-
-    @ElementCollection
-    @CollectionTable(name = "profile_blocked", joinColumns = @JoinColumn(name = "profile_id"))
-    @Column(name = "blocked_id")
-    private List<Long> blocked;
 }

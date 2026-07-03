@@ -1,19 +1,24 @@
 package com.example.kurullo.service;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import com.example.kurullo.model.Profile;
-import com.example.kurullo.model.User;
-import com.example.kurullo.repository.ProfileRepository;
-import com.example.kurullo.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.example.kurullo.model.Block;
+import com.example.kurullo.model.Follow;
+import com.example.kurullo.model.Profile;
+import com.example.kurullo.model.User;
+import com.example.kurullo.repository.BlockRepository;
+import com.example.kurullo.repository.FollowRepository;
+import com.example.kurullo.repository.ProfileRepository;
+import com.example.kurullo.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +26,8 @@ public class ProfileService {
 
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private final FollowRepository followRepository;
+    private final BlockRepository blockRepository;
     private final Cloudinary cloudinary;
 
     public Profile completeProfile(String email, String displayName, String bio,
@@ -35,10 +42,6 @@ public class ProfileService {
         profile.setUser(user);
         profile.setDisplayName(displayName);
         profile.setBio(bio);
-
-        if (profile.getFollowers() == null) profile.setFollowers(new ArrayList<>());
-        if (profile.getFollowing() == null) profile.setFollowing(new ArrayList<>());
-        if (profile.getBlocked() == null)   profile.setBlocked(new ArrayList<>());
 
         if (profilePic != null && !profilePic.isEmpty()) {
             profile.setProfilePic(uploadToCloudinary(profilePic, "profile-pics"));
@@ -63,7 +66,7 @@ public class ProfileService {
         return (String) uploadResult.get("secure_url");
     }
 
-    public Map<String, Object> getProfileByUsername(String username) {
+    public Map<String, Object> getProfileByUsername(String username, String viewerEmail) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -76,8 +79,87 @@ public class ProfileService {
         result.put("bio", profile.getBio());
         result.put("profilePic", profile.getProfilePic());
         result.put("bannerPic", profile.getBannerPic());
-        result.put("followers", profile.getFollowers() != null ? profile.getFollowers().size() : 0);
-        result.put("following", profile.getFollowing() != null ? profile.getFollowing().size() : 0);
+        result.put("followers", followRepository.countByFollowingId(user.getId()));
+        result.put("following", followRepository.countByFollowerId(user.getId()));
+
+        boolean isFollowing = false;
+        boolean isBlocked = false;
+        boolean blockedByThem = false;
+
+        if (viewerEmail != null) {
+            User viewer = userRepository.findByEmail(viewerEmail).orElse(null);
+            if (viewer != null && !viewer.getId().equals(user.getId())) {
+                isFollowing = followRepository.existsByFollowerIdAndFollowingId(viewer.getId(), user.getId());
+                isBlocked = blockRepository.existsByBlockerIdAndBlockedId(viewer.getId(), user.getId());
+                blockedByThem = blockRepository.existsByBlockerIdAndBlockedId(user.getId(), viewer.getId());
+            }
+        }
+
+        result.put("isFollowing", isFollowing);
+        result.put("isBlocked", isBlocked);
+        result.put("blockedByThem", blockedByThem);
+
         return result;
+    }
+
+    public void follow(String followerEmail, String targetUsername) {
+        User follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        if (follower.getId().equals(target.getId())) {
+            throw new RuntimeException("You cannot follow yourself");
+        }
+
+        if (blockRepository.existsByBlockerIdAndBlockedId(target.getId(), follower.getId())) {
+            throw new RuntimeException("You cannot follow this user");
+        }
+
+        if (!followRepository.existsByFollowerIdAndFollowingId(follower.getId(), target.getId())) {
+            Follow f = new Follow();
+            f.setFollowerId(follower.getId());
+            f.setFollowingId(target.getId());
+            followRepository.save(f);
+        }
+    }
+
+    public void unfollow(String followerEmail, String targetUsername) {
+        User follower = userRepository.findByEmail(followerEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        followRepository.deleteByFollowerIdAndFollowingId(follower.getId(), target.getId());
+    }
+
+    public void block(String blockerEmail, String targetUsername) {
+        User blocker = userRepository.findByEmail(blockerEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        if (blocker.getId().equals(target.getId())) {
+            throw new RuntimeException("You cannot block yourself");
+        }
+
+        if (!blockRepository.existsByBlockerIdAndBlockedId(blocker.getId(), target.getId())) {
+            Block b = new Block();
+            b.setBlockerId(blocker.getId());
+            b.setBlockedId(target.getId());
+            blockRepository.save(b);
+        }
+
+        followRepository.deleteByFollowerIdAndFollowingId(blocker.getId(), target.getId());
+        followRepository.deleteByFollowerIdAndFollowingId(target.getId(), blocker.getId());
+    }
+
+    public void unblock(String blockerEmail, String targetUsername) {
+        User blocker = userRepository.findByEmail(blockerEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        User target = userRepository.findByUsername(targetUsername)
+                .orElseThrow(() -> new RuntimeException("Target user not found"));
+
+        blockRepository.deleteByBlockerIdAndBlockedId(blocker.getId(), target.getId());
     }
 }
