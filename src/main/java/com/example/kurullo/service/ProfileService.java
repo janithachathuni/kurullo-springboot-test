@@ -5,12 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.kurullo.model.Block;
 import com.example.kurullo.model.Follow;
+import com.example.kurullo.model.NotificationType;
 import com.example.kurullo.model.Profile;
 import com.example.kurullo.model.User;
 import com.example.kurullo.repository.BlockRepository;
@@ -28,11 +30,12 @@ public class ProfileService {
     private final UserRepository userRepository;
     private final FollowRepository followRepository;
     private final BlockRepository blockRepository;
+    private final NotificationService notificationService;   // <-- add this
     private final Cloudinary cloudinary;
 
     public Profile completeProfile(String email, String displayName, String bio,
                                    MultipartFile profilePic, MultipartFile bannerPic) throws IOException {
-
+        // unchanged
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -67,6 +70,7 @@ public class ProfileService {
     }
 
     public Map<String, Object> getProfileByUsername(String username, String viewerEmail) {
+        // unchanged
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -102,6 +106,7 @@ public class ProfileService {
         return result;
     }
 
+    @Transactional
     public void follow(String followerEmail, String targetUsername) {
         User follower = userRepository.findByEmail(followerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -121,9 +126,16 @@ public class ProfileService {
             f.setFollowerId(follower.getId());
             f.setFollowingId(target.getId());
             followRepository.save(f);
+
+            notificationService.create(
+                target.getId(), follower.getId(), NotificationType.FOLLOW,
+                "USER", follower.getId(),
+                follower.getUsername() + " started following you"
+            );
         }
     }
 
+    @Transactional
     public void unfollow(String followerEmail, String targetUsername) {
         User follower = userRepository.findByEmail(followerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -133,6 +145,7 @@ public class ProfileService {
         followRepository.deleteByFollowerIdAndFollowingId(follower.getId(), target.getId());
     }
 
+    @Transactional
     public void block(String blockerEmail, String targetUsername) {
         User blocker = userRepository.findByEmail(blockerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -154,6 +167,7 @@ public class ProfileService {
         followRepository.deleteByFollowerIdAndFollowingId(target.getId(), blocker.getId());
     }
 
+    @Transactional
     public void unblock(String blockerEmail, String targetUsername) {
         User blocker = userRepository.findByEmail(blockerEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -162,4 +176,6 @@ public class ProfileService {
 
         blockRepository.deleteByBlockerIdAndBlockedId(blocker.getId(), target.getId());
     }
+
+    
 }
