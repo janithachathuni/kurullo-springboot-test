@@ -1,6 +1,6 @@
 import React from 'react';
 import Sidebar from '../../components/Sidebar';
-import SidebarRight from '../../components/SidebarRight';
+import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import { 
   FaFeather, 
   FaBinoculars,

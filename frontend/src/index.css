@@ -52,7 +52,9 @@ h1, h2 {
 
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f5f6f5;
+  /* --bg-secondary: #f5f6f5; */
+    --bg-secondary: #f0f5f2;
+
   --bg-card: #ffffff;
   --text-primary: #111111;
   --text-secondary: #4b5563;
@@ -64,9 +66,10 @@ h1, h2 {
 
 [data-theme="dark"] {
   --bg-primary: #0f0f0f;
-  --bg-secondary: #1a1a1a;
+  /* --bg-secondary: #1a1a1a; */
+    --bg-secondary: #151c19;
   --bg-card: #0b0b0b;
-  --text-primary: #f1f1f1;
+  --text-primary: #bed0be;
   --text-secondary: #9ca3af;
   /* --border: rgba(46, 46, 46, 0.5); */
     --border: #2e2e2e;

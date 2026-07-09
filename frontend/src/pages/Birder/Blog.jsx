@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
-import SidebarRight from '../../components/SidebarRight';
+import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import bannerimg from '../../Assets/bannerimg.png';
 import default_profile_pic from '../../Assets/default_profile_pic.png';
 import Post from "./Post";

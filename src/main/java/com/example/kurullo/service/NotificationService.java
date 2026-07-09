@@ -12,6 +12,7 @@ import com.example.kurullo.model.Notification;
 import com.example.kurullo.model.NotificationType;
 import com.example.kurullo.model.User;
 import com.example.kurullo.repository.NotificationRepository;
+import com.example.kurullo.repository.ProfileRepository;
 import com.example.kurullo.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
 
     // Called by other services (FollowService, LikeService, etc.) — not exposed directly as an endpoint
     public void create(Long recipientId, Long actorId, NotificationType type,
@@ -87,12 +89,33 @@ public class NotificationService {
         Map<String, Object> m = new HashMap<>();
         m.put("id", n.getId());
         m.put("type", n.getType());
-        m.put("actorId", n.getActorId());
         m.put("referenceType", n.getReferenceType());
         m.put("referenceId", n.getReferenceId());
         m.put("message", n.getMessage());
         m.put("read", n.isRead());
         m.put("createdAt", n.getCreatedAt());
+
+        if (n.getActorId() != null) {
+            userRepository.findById(n.getActorId()).ifPresentOrElse(actor -> {
+                m.put("actorUsername", actor.getUsername());
+                profileRepository.findByUserId(actor.getId()).ifPresentOrElse(profile -> {
+                    m.put("actorDisplayName", profile.getDisplayName());
+                    m.put("actorProfilePic", profile.getProfilePic());
+                }, () -> {
+                    m.put("actorDisplayName", actor.getUsername());
+                    m.put("actorProfilePic", null);
+                });
+            }, () -> {
+                m.put("actorUsername", null);
+                m.put("actorDisplayName", null);
+                m.put("actorProfilePic", null);
+            });
+        } else {
+            m.put("actorUsername", null);
+            m.put("actorDisplayName", null);
+            m.put("actorProfilePic", null);
+        }
+
         return m;
     }
 }

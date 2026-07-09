@@ -36,7 +36,8 @@ const birdsData = [
 
 const BirdList = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const isLoggedIn = !!user;
+  const isAdmin = user?.role === "ADMIN";
+  const isLoggedIn = !!user && !isAdmin;
 
   const [orderFilter, setOrderFilter] = useState("");
   const [familyFilter, setFamilyFilter] = useState("");

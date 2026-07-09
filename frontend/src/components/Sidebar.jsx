@@ -13,6 +13,27 @@ const Sidebar = () => {
     catch { return null; }
   });
 
+  // Notification state
+  // Notification state
+const [unreadCount, setUnreadCount] = useState(0);
+
+useEffect(() => {
+  if (!token) return;
+  const fetchUnreadCount = async () => {
+    try {
+      const res = await fetch('http://localhost:8080/api/notifications/unread-count', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      setUnreadCount(data.count);
+    } catch (err) {
+      console.error(err.message);
+    }
+  };
+  fetchUnreadCount();
+}, [token]); // Example: 3 unread notifications
+
   // Responsive state
   const [isTablet, setIsTablet] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -36,10 +57,15 @@ const Sidebar = () => {
     window.location.href = '/';
   };
 
+  // Handle notification click - clear the badge
+  const handleNotificationClick = () => {
+    setUnreadCount(0);
+  };
+
   const primaryNav = [
     { path: '/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
     { path: currentUser ? `/${currentUser.username}` : '/blog', icon: <FiFileText size={20} />, label: 'Blog' },
-    { path: '/notifications', icon: <FiBell size={20} />, label: 'Notifications' },
+    { path: '/notifications', icon: <FiBell size={20} />, label: 'Notifications', hasBadge: true },
   ];
 
   const secondaryNav = [
@@ -113,10 +139,18 @@ const Sidebar = () => {
             <NavLink
               key={item.path}
               to={item.path}
-              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors"
+              className="flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative"
               style={({ isActive }) => iconStyle(isActive)}
             >
               {item.icon}
+              {item.hasBadge && unreadCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold"
+                  style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                >
+                  {unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
 
@@ -165,10 +199,18 @@ const Sidebar = () => {
               key={item.path}
               to={item.path}
               title={item.label}
-              className="flex items-center justify-center rounded-lg p-3 transition-colors"
+              className="flex items-center justify-center rounded-lg p-3 transition-colors relative"
               style={({ isActive }) => iconStyle(isActive)}
             >
               {item.icon}
+              {item.hasBadge && unreadCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold"
+                  style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                >
+                  {unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
@@ -219,12 +261,20 @@ const Sidebar = () => {
               key={item.path}
               to={item.path}
               className={({ isActive }) =>
-                `flex items-center px-3 py-2 rounded-lg transition-colors ${isActive ? 'font-semibold' : ''}`
+                `flex items-center px-3 py-2 rounded-lg transition-colors relative ${isActive ? 'font-semibold' : ''}`
               }
               style={({ isActive }) => iconStyle(isActive)}
             >
               <span className="mr-3">{item.icon}</span>
               <span className="font-medium text-sm">{item.label}</span>
+              {item.hasBadge && unreadCount > 0 && (
+                <span
+                  className="ml-auto w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-bold flex-shrink-0"
+                  style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
+                >
+                  {unreadCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
