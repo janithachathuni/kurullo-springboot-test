@@ -84,7 +84,7 @@ const router = createBrowserRouter([
   { path: "/admin/statistics", element: <AdminStatistics/>},
   { path: "/admin/advertisements", element: <AdminAdvertisements/>},
   { path: "/admin/add-bird", element: <AdminAddBird/>},
-  { path: "/admin/edit-bird/:birdId", element: <AdminEditBird/>},
+  { path: "/admin/edit-bird/:id", element: <AdminEditBird/>},
   { path: "/admin/reports", element: <AdminReports/>},
   { path: "/admin/events-articles", element: <AdminEventsArticlesManage/>},
 
