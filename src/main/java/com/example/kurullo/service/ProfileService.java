@@ -47,11 +47,11 @@ public class ProfileService {
         profile.setBio(bio);
 
         if (profilePic != null && !profilePic.isEmpty()) {
-            profile.setProfilePic(uploadToCloudinary(profilePic, "profile-pics"));
+            profile.setProfilePic(uploadToCloudinary(profilePic, "profile-pics", 400, 400, "face"));
         }
 
         if (bannerPic != null && !bannerPic.isEmpty()) {
-            profile.setBannerPic(uploadToCloudinary(bannerPic, "banners"));
+            profile.setBannerPic(uploadToCloudinary(bannerPic, "banners", 1200, 400, "auto"));
         }
 
         profileRepository.save(profile);
@@ -63,9 +63,43 @@ public class ProfileService {
         return profile;
     }
 
-    private String uploadToCloudinary(MultipartFile file, String folder) throws IOException {
+    public Profile updateProfile(String email, String displayName, String bio,
+                                MultipartFile profilePic, MultipartFile bannerPic) throws IOException {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Profile profile = profileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new RuntimeException("Profile not found"));
+
+        if (displayName != null) profile.setDisplayName(displayName);
+        if (bio != null) profile.setBio(bio);
+
+        if (profilePic != null && !profilePic.isEmpty()) {
+            profile.setProfilePic(uploadToCloudinary(profilePic, "profile-pics", 400, 400, "face"));
+        }
+
+        if (bannerPic != null && !bannerPic.isEmpty()) {
+            profile.setBannerPic(uploadToCloudinary(bannerPic, "banners", 1200, 400, "auto"));
+        }
+
+        profileRepository.save(profile);
+
+        return profile;
+    }
+
+    private String uploadToCloudinary(MultipartFile file, String folder, int width, int height, String gravity) throws IOException {
+        com.cloudinary.Transformation transformation = new com.cloudinary.Transformation()
+                .width(width)
+                .height(height)
+                .crop("fill")
+                .gravity(gravity);
+
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
-                ObjectUtils.asMap("folder", "kurullo/" + folder));
+                ObjectUtils.asMap(
+                    "folder", "kurullo/" + folder,
+                    "transformation", transformation
+                ));
         return (String) uploadResult.get("secure_url");
     }
 

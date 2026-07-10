@@ -1,127 +1,50 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import AdminSidebar from '../../components/AdminSidebar';
 import { FaEdit, FaTrash, FaPlus, FaSearch, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-
-// Mock bird data
-const mockBirds = [
-  {
-    _id: '1',
-    primaryName: 'Sri Lanka Junglefowl',
-    scientificName: 'Gallus lafayettii',
-    order: 'Galliformes',
-    family: 'Phasianidae',
-    otherNames: ['Ceylon Junglefowl'],
-    image: 'https://via.placeholder.com/64x64/506142/ffffff?text=Bird'
-  },
-  {
-    _id: '2',
-    primaryName: 'Sri Lanka Hanging Parrot',
-    scientificName: 'Loriculus beryllinus',
-    order: 'Psittaciformes',
-    family: 'Psittacidae',
-    otherNames: ['Ceylon Hanging Parrot'],
-    image: 'https://via.placeholder.com/64x64/506142/ffffff?text=Bird'
-  },
-  {
-    _id: '3',
-    primaryName: 'Sri Lanka Blue Magpie',
-    scientificName: 'Urocissa ornata',
-    order: 'Passeriformes',
-    family: 'Corvidae',
-    otherNames: ['Ceylon Blue Magpie'],
-    image: 'https://via.placeholder.com/64x64/506142/ffffff?text=Bird'
-  },
-  {
-    _id: '4',
-    primaryName: 'Sri Lanka White-eye',
-    scientificName: 'Zosterops ceylonensis',
-    order: 'Passeriformes',
-    family: 'Zosteropidae',
-    otherNames: ['Ceylon White-eye'],
-    image: 'https://via.placeholder.com/64x64/506142/ffffff?text=Bird'
-  },
-  {
-    _id: '5',
-    primaryName: 'Sri Lanka Wood Pigeon',
-    scientificName: 'Columba torringtoniae',
-    order: 'Columbiformes',
-    family: 'Columbidae',
-    otherNames: ['Ceylon Wood Pigeon'],
-    image: 'https://via.placeholder.com/64x64/506142/ffffff?text=Bird'
-  },
-];
-
-// All bird families and their orders found in Sri Lanka
-const sriLankanBirdTaxonomy = [
-  { order: 'Accipitriformes', family: 'Accipitridae', category: 'Birds of Prey' },
-  { order: 'Passeriformes', family: 'Aegithalidae', category: 'Long-tailed Tits' },
-  { order: 'Passeriformes', family: 'Alaudidae', category: 'Larks' },
-  { order: 'Coraciiformes', family: 'Alcedinidae', category: 'Kingfishers' },
-  { order: 'Anseriformes', family: 'Anatidae', category: 'Ducks, Geese & Swans' },
-  { order: 'Apodiformes', family: 'Apodidae', category: 'Swifts' },
-  { order: 'Pelecaniformes', family: 'Ardeidae', category: 'Herons & Egrets' },
-  { order: 'Bucerotiformes', family: 'Bucerotidae', category: 'Hornbills' },
-  { order: 'Passeriformes', family: 'Campephagidae', category: 'Cuckoo-shrikes' },
-  { order: 'Caprimulgiformes', family: 'Caprimulgidae', category: 'Nightjars' },
-  { order: 'Charadriiformes', family: 'Charadriidae', category: 'Plovers' },
-  { order: 'Ciconiiformes', family: 'Ciconiidae', category: 'Storks' },
-  { order: 'Passeriformes', family: 'Cisticolidae', category: 'Cisticolas & Allies' },
-  { order: 'Columbiformes', family: 'Columbidae', category: 'Pigeons & Doves' },
-  { order: 'Coraciiformes', family: 'Coraciidae', category: 'Rollers' },
-  { order: 'Passeriformes', family: 'Corvidae', category: 'Crows, Jays & Magpies' },
-  { order: 'Cuculiformes', family: 'Cuculidae', category: 'Cuckoos' },
-  { order: 'Passeriformes', family: 'Dicaeidae', category: 'Flowerpeckers' },
-  { order: 'Passeriformes', family: 'Dicruridae', category: 'Drongos' },
-  { order: 'Passeriformes', family: 'Estrildidae', category: 'Estrildid Finches' },
-  { order: 'Falconiformes', family: 'Falconidae', category: 'Falcons & Caracaras' },
-  { order: 'Passeriformes', family: 'Fringillidae', category: 'Finches & Canaries' },
-  { order: 'Passeriformes', family: 'Hirundinidae', category: 'Swallows & Martins' },
-  { order: 'Passeriformes', family: 'Laniidae', category: 'Shrikes' },
-  { order: 'Charadriiformes', family: 'Laridae', category: 'Gulls, Terns & Skimmers' },
-  { order: 'Piciformes', family: 'Megalaimidae', category: 'Asian Barbets' },
-  { order: 'Coraciiformes', family: 'Meropidae', category: 'Bee-eaters' },
-  { order: 'Passeriformes', family: 'Motacillidae', category: 'Wagtails & Pipits' },
-  { order: 'Passeriformes', family: 'Muscicapidae', category: 'Old World Flycatchers' },
-  { order: 'Passeriformes', family: 'Nectariniidae', category: 'Sunbirds' },
-  { order: 'Passeriformes', family: 'Oriolidae', category: 'Orioles' },
-  { order: 'Pelecaniformes', family: 'Pelecanidae', category: 'Pelicans' },
-  { order: 'Galliformes', family: 'Phasianidae', category: 'Pheasants & Allies' },
-  { order: 'Piciformes', family: 'Picidae', category: 'Woodpeckers' },
-  { order: 'Passeriformes', family: 'Pittidae', category: 'Pittas' },
-  { order: 'Passeriformes', family: 'Ploceidae', category: 'Weavers' },
-  { order: 'Psittaciformes', family: 'Psittacidae', category: 'Parrots' },
-  { order: 'Passeriformes', family: 'Pycnonotidae', category: 'Bulbuls' },
-  { order: 'Gruiformes', family: 'Rallidae', category: 'Rails, Crakes & Coots' },
-  { order: 'Charadriiformes', family: 'Scolopacidae', category: 'Sandpipers & Allies' },
-  { order: 'Strigiformes', family: 'Strigidae', category: 'Owls' },
-  { order: 'Passeriformes', family: 'Sturnidae', category: 'Starlings' },
-  { order: 'Passeriformes', family: 'Sylviidae', category: 'Sylviid Warblers' },
-  { order: 'Pelecaniformes', family: 'Threskiornithidae', category: 'Ibises & Spoonbills' },
-  { order: 'Passeriformes', family: 'Timaliidae', category: 'Babblers' },
-  { order: 'Passeriformes', family: 'Turdidae', category: 'Thrushes' },
-  { order: 'Strigiformes', family: 'Tytonidae', category: 'Barn Owls' },
-  { order: 'Bucerotiformes', family: 'Upupidae', category: 'Hoopoes' },
-  { order: 'Passeriformes', family: 'Vangidae', category: 'Vangas' },
-  { order: 'Passeriformes', family: 'Zosteropidae', category: 'White-eyes' },
-];
+import { getBirds, deleteBird, getBirdOrders, getBirdFamilies } from '../../utils/api';
 
 const BirdList = () => {
-  const [birds, setBirds] = useState(mockBirds);
+  const [birds, setBirds] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedBird, setSelectedBird] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFamily, setSelectedFamily] = useState('');
   const [selectedOrder, setSelectedOrder] = useState('');
   const [notification, setNotification] = useState(null);
+  const [birdOrders, setBirdOrders] = useState([]);
+  const [birdFamilies, setBirdFamilies] = useState([]);
 
   const navigate = useNavigate();
 
-  // Extract unique orders from the taxonomy data
-  const birdOrders = useMemo(() => {
-    const orders = new Set(sriLankanBirdTaxonomy.map((item) => item.order));
-    return [...orders].sort();
+  useEffect(() => {
+    fetchBirds();
+    fetchTaxonomy();
   }, []);
+
+  const fetchBirds = async () => {
+    setLoading(true);
+    try {
+      const data = await getBirds();
+      setBirds(data.map((b) => ({ ...b, _id: b.id })));
+    } catch (err) {
+      setNotification('Error: Failed to load birds. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTaxonomy = async () => {
+    try {
+      const [orders, families] = await Promise.all([getBirdOrders(), getBirdFamilies()]);
+      setBirdOrders(orders);
+      setBirdFamilies(families);
+    } catch (err) {
+      // Non-fatal — filters just won't populate
+      console.error('Failed to load taxonomy', err);
+    }
+  };
 
   // Filter birds based on search term, family, and order
   const filteredBirds = useMemo(() => {
@@ -144,12 +67,18 @@ const BirdList = () => {
     setShowDeleteConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!selectedBird) return;
-    setBirds(birds.filter((b) => b._id !== selectedBird._id));
-    setNotification(`${selectedBird.primaryName} deleted successfully.`);
-    setShowDeleteConfirm(false);
-    setSelectedBird(null);
+    try {
+      await deleteBird(selectedBird._id);
+      setBirds((prev) => prev.filter((b) => b._id !== selectedBird._id));
+      setNotification(`${selectedBird.primaryName} deleted successfully.`);
+    } catch (err) {
+      setNotification(`Error: Failed to delete ${selectedBird.primaryName}.`);
+    } finally {
+      setShowDeleteConfirm(false);
+      setSelectedBird(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -260,7 +189,7 @@ const BirdList = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent bg-white"
               >
                 <option value="">All Families</option>
-                {sriLankanBirdTaxonomy.map((familyObj) => (
+                {birdFamilies.map((familyObj) => (
                   <option key={familyObj.family} value={familyObj.family}>
                     {familyObj.family}: {familyObj.category}
                   </option>
@@ -301,7 +230,13 @@ const BirdList = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredBirds.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-12 text-gray-500">
+                      Loading birds...
+                    </td>
+                  </tr>
+                ) : filteredBirds.length === 0 ? (
                   <tr>
                     <td colSpan="6" className="text-center py-12 text-gray-500">
                       <div className="flex flex-col items-center">

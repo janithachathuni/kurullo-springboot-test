@@ -325,6 +325,9 @@ const Blog = () => {
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}
         userData={userData}
+        onProfileUpdated={(updatedFields) => {
+          setUserData((prev) => ({ ...prev, ...updatedFields }));
+        }}
       />
     </div>
   );

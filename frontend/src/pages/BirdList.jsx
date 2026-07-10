@@ -1,51 +1,44 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import BirderSidebar from '../components/Sidebar'
 import BirderRightSidebar from '../components/SidebarRight'
-
-const birdsData = [
-  {
-    id: 1,
-    name: "Lesser Whistling Duck",
-    scientificName: "Dendrocygna javanica",
-    order: "Anseriformes",
-    family: "Anatidae",
-    habitat: "Wetlands, lakes, paddy fields",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Dendrocygna_javanica_-_Chiang_Mai.jpg/500px-Dendrocygna_javanica_-_Chiang_Mai.jpg"
-  },
-  {
-    id: 2,
-    name: "Sri Lanka Junglefowl",
-    scientificName: "Gallus lafayettii",
-    order: "Galliformes",
-    family: "Phasianidae",
-    habitat: "Forests, scrublands (endemic)",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Flickr_-_Rainbirder_-_Ceylon_Junglefowl_%28Gallus_lafayetii%29_Male.jpg/500px-Flickr_-_Rainbirder_-_Ceylon_Junglefowl_%28Gallus_lafayetii%29_Male.jpg"
-  },
-  {
-    id: 3,
-    name: "Indian Peafowl",
-    scientificName: "Pavo cristatus",
-    order: "Galliformes",
-    family: "Phasianidae",
-    habitat: "Forest edges, cultivated land",
-    image: "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7f/Peacock_on_tree_%2852077240794%29.jpg/500px-Peacock_on_tree_%2852077240794%29.jpg"
-  },
-];
+import { getBirds } from '../utils/api'
+import { useNavigate } from 'react-router-dom'
 
 const BirdList = () => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isAdmin = user?.role === "ADMIN";
   const isLoggedIn = !!user && !isAdmin;
+  const navigate = useNavigate();
+
+  const [birdsData, setBirdsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [orderFilter, setOrderFilter] = useState("");
   const [familyFilter, setFamilyFilter] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      setError("");
+      try {
+        const data = await getBirds();
+        setBirdsData(data);
+      } catch (err) {
+        console.error("Failed to load birds", err);
+        setError("Failed to load birds. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
+
   const uniqueOrders = useMemo(
     () => [...new Set(birdsData.map((b) => b.order))].sort(),
-    []
+    [birdsData]
   );
 
   const uniqueFamilies = useMemo(() => {
@@ -53,28 +46,40 @@ const BirdList = () => {
       ? birdsData.filter((b) => b.order === orderFilter)
       : birdsData;
     return [...new Set(source.map((b) => b.family))].sort();
-  }, [orderFilter]);
+  }, [orderFilter, birdsData]);
 
   const handleOrderChange = (value) => {
     setOrderFilter(value);
     setFamilyFilter("");
   };
 
+  // Builds one lowercased haystack per bird from every searchable name field
+  const buildSearchHaystack = (bird) => {
+    const parts = [
+      bird.primaryName,
+      bird.scientificName,
+      bird.sinhalaName,
+      bird.tamilName,
+      ...(Array.isArray(bird.otherNames) ? bird.otherNames : []),
+    ];
+    return parts
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+  };
+
   const filteredBirds = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
     return birdsData
       .filter((b) => (orderFilter ? b.order === orderFilter : true))
       .filter((b) => (familyFilter ? b.family === familyFilter : true))
-      .filter((b) =>
-        searchTerm
-          ? b.name.toLowerCase().includes(searchTerm.toLowerCase())
-          : true
-      )
+      .filter((b) => (term ? buildSearchHaystack(b).includes(term) : true))
       .sort((a, b) => {
-        if (a.order !== b.order) return a.order.localeCompare(b.order);
-        if (a.family !== b.family) return a.family.localeCompare(b.family);
-        return a.name.localeCompare(b.name);
+        if (a.order !== b.order) return (a.order || "").localeCompare(b.order || "");
+        if (a.family !== b.family) return (a.family || "").localeCompare(b.family || "");
+        return (a.primaryName || "").localeCompare(b.primaryName || "");
       });
-  }, [orderFilter, familyFilter, searchTerm]);
+  }, [orderFilter, familyFilter, searchTerm, birdsData]);
 
   const groupedBirds = useMemo(() => {
     const groups = [];
@@ -140,18 +145,31 @@ const BirdList = () => {
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name..."
+            placeholder="Search by name, other names, Sinhala, or Tamil..."
             className="w-full px-3 py-2 rounded border text-sm"
             style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-card)", color: "var(--text-primary)" }}
           />
         </div>
 
+        {/* Loading / error states */}
+        {isLoading && (
+          <p className="text-sm opacity-70" style={{ color: "var(--text-secondary)" }}>
+            Loading birds...
+          </p>
+        )}
+
+        {!isLoading && error && (
+          <p className="text-sm" style={{ color: "#dc2626" }}>
+            {error}
+          </p>
+        )}
+
         {/* Grouped bird list */}
-        {groupedBirds.length === 0 && (
+        {!isLoading && !error && groupedBirds.length === 0 && (
           <p className="text-sm opacity-70" style={{ color: "var(--text-secondary)" }}>No birds match your filters.</p>
         )}
 
-        {groupedBirds.map((orderGroup) => (
+        {!isLoading && !error && groupedBirds.map((orderGroup) => (
           <div key={orderGroup.order} className="mb-6">
             <h2
               className="text-xl font-bold mb-1 pb-1 border-b"
@@ -173,14 +191,15 @@ const BirdList = () => {
                   {familyGroup.birds.map((bird) => (
                     <li
                       key={bird.id}
+                      onClick={() => navigate(`/bird/${bird.id}`)}
                       className="p-4 rounded border flex items-start gap-4"
                       style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-card)" }}
                     >
                       {/* Square Thumbnail */}
                       <div className="flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-gray-200">
-                        <img 
-                          src={bird.image} 
-                          alt={bird.name}
+                        <img
+                          src={bird.image}
+                          alt={bird.primaryName}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.onerror = null;
@@ -188,15 +207,20 @@ const BirdList = () => {
                           }}
                         />
                       </div>
-                      
+
                       {/* Bird Info */}
                       <div className="flex-1 min-w-0">
                         <p className="font-medium" style={{ color: "var(--text-primary)" }}>
-                          {bird.name}{" "}
+                          {bird.primaryName}{" "}
                           <span className="italic font-normal text-sm" style={{ color: "var(--text-secondary)" }}>
                             {bird.scientificName}
                           </span>
                         </p>
+                        {(bird.sinhalaName || bird.tamilName) && (
+                          <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                            {[bird.sinhalaName, bird.tamilName].filter(Boolean).join(" · ")}
+                          </p>
+                        )}
                         <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
                           {bird.habitat}
                         </p>

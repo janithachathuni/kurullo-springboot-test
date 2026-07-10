@@ -3,7 +3,7 @@ import { FaCamera, FaTimes } from "react-icons/fa";
 import bannerimg from "../../Assets/bannerimg.png";
 import default_profile_pic from "../../Assets/default_profile_pic.png";
 
-const EditProfile = ({ isOpen, onClose, userData }) => {
+const EditProfile = ({ isOpen, onClose, userData, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
     name: "",
     bio: "",
@@ -87,8 +87,15 @@ const EditProfile = ({ isOpen, onClose, userData }) => {
       };
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
+      if (onProfileUpdated) {
+        onProfileUpdated({
+          displayName: data.displayName,
+          bio: data.bio,
+          profilePic: data.profilePic,
+          bannerPic: data.bannerPic,
+        });
+      }
       onClose();
-      window.location.reload();
     } catch (err) {
       alert(err.message);
     } finally {

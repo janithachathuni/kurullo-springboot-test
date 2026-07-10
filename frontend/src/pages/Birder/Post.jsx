@@ -612,7 +612,7 @@ const Post = () => {
                 <img 
                   src={post.profilePic || profileimg} 
                   alt="Profile" 
-                  className="w-10 h-10 rounded-md object-cover border" 
+                  className="w-10 h-10 rounded-full object-cover border" 
                   style={{ borderColor: "var(--border)" }}
                 />
                 <span className="font-semibold" style={{ color: "var(--text-primary)" }}>

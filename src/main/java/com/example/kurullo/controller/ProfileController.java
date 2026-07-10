@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -43,6 +44,32 @@ public class ProfileController {
             return ResponseEntity.ok(Map.of(
                     "message", "Profile completed successfully",
                     "displayName", profile.getDisplayName()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<?> updateProfile(
+            @RequestHeader("Authorization") String authHeader,
+            @RequestParam(value = "displayName", required = false) String displayName,
+            @RequestParam(value = "bio", required = false) String bio,
+            @RequestParam(value = "profilePic", required = false) MultipartFile profilePic,
+            @RequestParam(value = "bannerPic", required = false) MultipartFile bannerPic
+    ) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            String email = jwtUtil.extractEmail(token);
+
+            Profile profile = profileService.updateProfile(email, displayName, bio, profilePic, bannerPic);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "Profile updated successfully",
+                    "displayName", profile.getDisplayName(),
+                    "bio", profile.getBio() != null ? profile.getBio() : "",
+                    "profilePic", profile.getProfilePic() != null ? profile.getProfilePic() : "",
+                    "bannerPic", profile.getBannerPic() != null ? profile.getBannerPic() : ""
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));

@@ -5,25 +5,17 @@ import BirderSidebar from '../components/Sidebar'
 import BirderRightSidebar from '../components/SidebarRight'
 import { useParams, useNavigate } from 'react-router-dom'
 import { FaMapMarkerAlt, FaInfoCircle, FaGlobe, FaStickyNote, FaImages } from 'react-icons/fa'
+import { getBirdById } from '../utils/api'
 
-const sampleBird = {
-  id: 1,
-  primaryName: "Sri Lanka Junglefowl",
-  otherNames: ["Ceylon Junglefowl", "Sri Lankan Junglefowl"],
-  scientificName: "Gallus lafayettii",
-  order: "Galliformes",
-  family: "Phasianidae",
-  description: "The Sri Lanka Junglefowl is a member of the Galliformes bird order which is endemic to Sri Lanka. It is a colourful bird with a distinctive crest, bright orange and yellow body plumage, and a greenish-blue tail. The male has a prominent comb and wattles, while the female is smaller with more subdued colors. This bird is known for its loud, crowing call, which is often heard in the early morning and evening. It is commonly found in forests, scrublands, and cultivated areas across the island.",
-  sinhalaName: "වළි කුකුළා",
-  tamilName: "இலங்கை காட்டுக்கோழி",
-  image: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Flickr_-_Rainbirder_-_Ceylon_Junglefowl_%28Gallus_lafayetii%29_Male.jpg/500px-Flickr_-_Rainbirder_-_Ceylon_Junglefowl_%28Gallus_lafayetii%29_Male.jpg",
-  habitatMap: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Sri_Lanka_location_map.svg/1200px-Sri_Lanka_location_map.svg.png",
-  frequency: "Common",
-  residency: "Resident",
-  endemic: true,
-  places: ["Sinharaja Forest", "Kandy", "Horton Plains", "Yala National Park"],
-  habitat: "Forests, scrublands, cultivated areas",
-  notes: "This species is the national bird of Sri Lanka. It is closely related to the Red Junglefowl but has distinct plumage characteristics. The male's call is particularly distinctive and can be heard throughout the day."
+// Backend enums come back as raw names like "VERY_COMMON" / "RESIDENT" —
+// convert to display-friendly text, e.g. "Very Common".
+const formatEnumLabel = (value) => {
+  if (!value) return ""
+  return value
+    .toLowerCase()
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
 }
 
 const Bird = () => {
@@ -35,12 +27,36 @@ const Bird = () => {
 
   const [bird, setBird] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    setTimeout(() => {
-      setBird(sampleBird)
-      setLoading(false)
-    }, 500)
+    let isCancelled = false
+
+    const fetchBird = async () => {
+      setLoading(true)
+      setError("")
+      try {
+        const data = await getBirdById(id)
+        if (!isCancelled) {
+          setBird(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch bird", err)
+        if (!isCancelled) {
+          setError("Failed to load bird details.")
+        }
+      } finally {
+        if (!isCancelled) {
+          setLoading(false)
+        }
+      }
+    }
+
+    fetchBird()
+
+    return () => {
+      isCancelled = true
+    }
   }, [id])
 
   const BirdDetailContent = ({ isBirder }) => {
@@ -55,10 +71,10 @@ const Bird = () => {
       )
     }
 
-    if (!bird) {
+    if (error || !bird) {
       return (
         <div className="text-center py-12">
-          <p style={{ color: "var(--text-secondary)" }}>Bird not found</p>
+          <p style={{ color: "var(--text-secondary)" }}>{error || "Bird not found"}</p>
           <button
             onClick={() => navigate('/birdlist')}
             className="mt-4 px-6 py-2 bg-[#506142] text-white rounded-lg hover:bg-[#3f4d34] transition-all"
@@ -76,18 +92,28 @@ const Bird = () => {
       bird.tamilName
     ].filter(name => name && name.trim() !== "")
 
+    // Places comes back from the API as a comma-separated string, not an array
+    const placesList = bird.places
+      ? bird.places.split(",").map((p) => p.trim()).filter(Boolean)
+      : []
+
+    // Notes comes back from the API as an array already
+    const notesList = Array.isArray(bird.notes)
+      ? bird.notes.filter((note) => note && note.trim() !== "")
+      : []
+
     // Mock gallery images
     const galleryImages = Array.from({ length: 9 }, (_, i) => `https://picsum.photos/seed/bird${bird.id}${i}/400/400`)
 
     return (
       <div
-        className="w-full rounded-lg"
+        className="w-full"
         style={{
           ...(isBirder ? {} : { marginRight: "30%", maxWidth: "70%" })
         }}
       >
         <div
-          className="rounded-lg overflow-hidden border-t border-b "
+          className="overflow-hidden border-t border-b "
           style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border)" }}
         >
           {/* Name Section */}
@@ -137,11 +163,11 @@ const Bird = () => {
               </div>
               <div>
                 <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text-secondary)" }}>Residency</p>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{bird.residency}</p>
+                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{formatEnumLabel(bird.residency)}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text-secondary)" }}>Frequency</p>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{bird.frequency}</p>
+                <p className="font-medium" style={{ color: "var(--text-primary)" }}>{formatEnumLabel(bird.frequency)}</p>
               </div>
               <div>
                 <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text-secondary)" }}>Status</p>
@@ -153,16 +179,55 @@ const Bird = () => {
           </div>
 
           {/* Known Locations */}
-          {bird.places && bird.places.length > 0 && (
+          {placesList.length > 0 && (
             <>
               <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
               <div className="p-4">
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
                   <FaMapMarkerAlt /> Known Locations
                 </h3>
-                <p style={{ color: "var(--text-primary)" }}>
-                  {bird.places.join(", ")}
+                <p style={{ color: "var(--text-secondary)" }}>
+                  {placesList.join(", ")}
                 </p>
+              </div>
+            </>
+          )}
+
+          {/* Habitat Map Section - 2 columns with 1:5 ratio */}
+          {bird.habitat && (
+            <>
+              <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
+              <div className="p-4">
+                <div className="grid grid-cols-6 gap-4">
+                  {/* Left column - Map (1 part) */}
+                  <div className="col-span-1">
+                    <div className="w-full aspect-square overflow-hidden rounded-md bg-gray-200">
+                      {bird.habitatMap ? (
+                        <img
+                          src={bird.habitatMap}
+                          alt={`${bird.primaryName} habitat map`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="100%25" viewBox="0 0 100%25 100%25"%3E%3Crect width="100%25" height="100%25" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="20" font-family="sans-serif"%3E🗺️%3C/text%3E%3C/svg%3E'
+                          }}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                          <span className="text-4xl">🗺️</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right column - Habitat details (5 parts) */}
+                  <div className="col-span-5 flex flex-col justify-center">
+                    <div>
+                      <p className="text-sm font-semibold " style={{ color: "var(--text-primary)" }}>Habitat</p>
+                      <p className="font-medium" style={{ color: "var(--text-secondary)" }}>{bird.habitat}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </>
           )}
@@ -172,35 +237,56 @@ const Bird = () => {
           {/* Description */}
           <div className="p-4">
             <h3 className="text-lg font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-              <FaInfoCircle /> Description
+              Description
             </h3>
-            <p className="leading-relaxed" style={{ color: "var(--text-primary)" }}>
+            <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {bird.description}
             </p>
           </div>
 
-          {/* Notes */}
-          {bird.notes && (
+          {/* Notes - as a list without icon */}
+          {notesList.length > 0 && (
             <>
               <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
               <div className="p-4">
-                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
-                  <FaStickyNote /> Notes
+                <h3 className="text-sm font-semibold mb-3" style={{ color: "var(--text-primary)" }}>
+                  Notes
                 </h3>
-                <p className="leading-relaxed" style={{ color: "var(--text-primary)" }}>
-                  {bird.notes}
-                </p>
+                <ul className="list-disc pl-5 space-y-1" style={{ color: "var(--text-secondary)" }}>
+                  {notesList.map((note, index) => (
+                    <li key={index} className="leading-relaxed">{note.trim()}</li>
+                  ))}
+                </ul>
               </div>
             </>
           )}
+
+          {/* Actions */}
+          <div className="p-4 flex gap-4">
+            <button
+                onClick={() => navigate('/birdlist')}
+                className="px-6 py-2 rounded-lg transition-all font-medium hover:opacity-90"
+                style={{ backgroundColor: "var(--accent)", color: "var(--bg-primary)" }}
+              >
+                Back to Birds
+              </button>
+            {isAdmin && (
+              <button
+                onClick={() => navigate(`/admin/edit-bird/${bird.id}`)}
+                className="px-6 py-2 bg-[#506142] text-white rounded-lg hover:bg-[#3f4d34] transition-all font-medium"
+              >
+                Edit Bird
+              </button>
+            )}
+          </div>
 
           <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
 
           {/* Gallery */}
           <div className="p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2" style={{ color: "var(--text-secondary)" }}>
-              <FaImages /> Gallery
-            </h3>
+            <h1 className="text-2xl font-bold mb-3 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
+               Gallery
+            </h1>
             <div className="grid grid-cols-3 gap-1">
               {galleryImages.map((src, index) => (
                 <div key={index} className="w-full aspect-square overflow-hidden bg-gray-200">
@@ -216,26 +302,6 @@ const Bird = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
-
-          {/* Actions */}
-          <div className="p-4 flex gap-4">
-            <button
-              onClick={() => navigate('/birdlist')}
-              className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-all font-medium"
-            >
-              Back to Birds
-            </button>
-            {isAdmin && (
-              <button
-                onClick={() => navigate(`/admin/edit-bird/${bird.id}`)}
-                className="px-6 py-2 bg-[#506142] text-white rounded-lg hover:bg-[#3f4d34] transition-all font-medium"
-              >
-                Edit Bird
-              </button>
-            )}
           </div>
         </div>
       </div>

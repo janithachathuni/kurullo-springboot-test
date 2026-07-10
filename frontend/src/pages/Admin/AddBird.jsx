@@ -1,82 +1,8 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import UserSidebar from "../../Components/AdminSidebar";
-import { FaPlus, FaTimes, FaSave, FaArrowLeft, FaUpload, FaImage } from "react-icons/fa";
+import { FaPlus, FaTimes, FaSave, FaArrowLeft, FaImage } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
-// Static data for orders and families in Sri Lanka
-const sriLankanBirdOrders = [
-  "Accipitriformes",
-  "Anseriformes",
-  "Apodiformes",
-  "Bucerotiformes",
-  "Caprimulgiformes",
-  "Charadriiformes",
-  "Ciconiiformes",
-  "Columbiformes",
-  "Coraciiformes",
-  "Cuculiformes",
-  "Falconiformes",
-  "Galliformes",
-  "Pelecaniformes",
-  "Piciformes",
-  "Psittaciformes",
-  "Strigiformes",
-  "Upupiformes",
-  "Passeriformes",
-];
-
-const sriLankanBirdFamilies = [
-  { family: "Accipitridae", category: "Birds of Prey" },
-  { family: "Aegithalidae", category: "Long-tailed Tits" },
-  { family: "Alaudidae", category: "Larks" },
-  { family: "Alcedinidae", category: "Kingfishers" },
-  { family: "Anatidae", category: "Ducks, Geese & Swans" },
-  { family: "Apodidae", category: "Swifts" },
-  { family: "Ardeidae", category: "Herons & Egrets" },
-  { family: "Bucerotidae", category: "Hornbills" },
-  { family: "Campephagidae", category: "Cuckoo-shrikes" },
-  { family: "Caprimulgidae", category: "Nightjars" },
-  { family: "Charadriidae", category: "Plovers" },
-  { family: "Ciconiidae", category: "Storks" },
-  { family: "Cisticolidae", category: "Cisticolas & Allies" },
-  { family: "Columbidae", category: "Pigeons & Doves" },
-  { family: "Coraciidae", category: "Rollers" },
-  { family: "Corvidae", category: "Crows, Jays & Magpies" },
-  { family: "Cuculidae", category: "Cuckoos" },
-  { family: "Dicaeidae", category: "Flowerpeckers" },
-  { family: "Dicruridae", category: "Drongos" },
-  { family: "Estrildidae", category: "Estrildid Finches" },
-  { family: "Falconidae", category: "Falcons & Caracaras" },
-  { family: "Fringillidae", category: "Finches & Canaries" },
-  { family: "Hirundinidae", category: "Swallows & Martins" },
-  { family: "Laniidae", category: "Shrikes" },
-  { family: "Laridae", category: "Gulls, Terns & Skimmers" },
-  { family: "Megalaimidae", category: "Asian Barbets" },
-  { family: "Meropidae", category: "Bee-eaters" },
-  { family: "Motacillidae", category: "Wagtails & Pipits" },
-  { family: "Muscicapidae", category: "Old World Flycatchers" },
-  { family: "Nectariniidae", category: "Sunbirds" },
-  { family: "Oriolidae", category: "Orioles" },
-  { family: "Pelecanidae", category: "Pelicans" },
-  { family: "Phasianidae", category: "Pheasants & Allies" },
-  { family: "Picidae", category: "Woodpeckers" },
-  { family: "Pittidae", category: "Pittas" },
-  { family: "Ploceidae", category: "Weavers" },
-  { family: "Psittacidae", category: "Parrots" },
-  { family: "Pycnonotidae", category: "Bulbuls" },
-  { family: "Rallidae", category: "Rails, Crakes & Coots" },
-  { family: "Scolopacidae", category: "Sandpipers & Allies" },
-  { family: "Strigidae", category: "Owls" },
-  { family: "Sturnidae", category: "Starlings" },
-  { family: "Sylviidae", category: "Sylviid Warblers" },
-  { family: "Threskiornithidae", category: "Ibises & Spoonbills" },
-  { family: "Timaliidae", category: "Babblers" },
-  { family: "Turdidae", category: "Thrushes" },
-  { family: "Tytonidae", category: "Barn Owls" },
-  { family: "Upupidae", category: "Hoopoes" },
-  { family: "Vangidae", category: "Vangas" },
-  { family: "Zosteropidae", category: "White-eyes" },
-];
+import { createBird, getBirdOrders, getBirdFamilies } from "../../utils/api";
 
 const AddBird = () => {
   const [formData, setFormData] = useState({
@@ -88,14 +14,16 @@ const AddBird = () => {
     description: "",
     sinhalaName: "",
     tamilName: "",
-    image: null, // Changed to store File object
-    imagePreview: null, // For preview
-    habitatMap: null, // Changed to store File object
-    habitatMapPreview: null, // For preview
+    image: null,
+    imagePreview: null,
+    habitatMap: null,
+    habitatMapPreview: null,
     frequency: "",
     residency: "",
     endemic: false,
-    places: [""],
+    places: "",
+    habitat: "",
+    notes: [""],
   });
 
   const [error, setError] = useState("");
@@ -103,23 +31,37 @@ const AddBird = () => {
   const [showOrderSuggestions, setShowOrderSuggestions] = useState(false);
   const [showFamilySuggestions, setShowFamilySuggestions] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
+  const [birdOrders, setBirdOrders] = useState([]);
+  const [birdFamilies, setBirdFamilies] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const [orders, families] = await Promise.all([getBirdOrders(), getBirdFamilies()]);
+        setBirdOrders(orders);
+        setBirdFamilies(families);
+      } catch (err) {
+        console.error("Failed to load taxonomy", err);
+      }
+    })();
+  }, []);
 
   // Filtered lists for suggestions
   const filteredOrders = useMemo(() => {
     if (!formData.order) return [];
-    return sriLankanBirdOrders.filter((order) =>
+    return birdOrders.filter((order) =>
       order.toLowerCase().includes(formData.order.toLowerCase())
     );
-  }, [formData.order]);
+  }, [formData.order, birdOrders]);
 
   const filteredFamilies = useMemo(() => {
     if (!formData.family) return [];
-    return sriLankanBirdFamilies.filter((familyObj) =>
+    return birdFamilies.filter((familyObj) =>
       familyObj.family.toLowerCase().includes(formData.family.toLowerCase()) ||
       familyObj.category.toLowerCase().includes(formData.family.toLowerCase())
     );
-  }, [formData.family]);
+  }, [formData.family, birdFamilies]);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
@@ -131,13 +73,11 @@ const AddBird = () => {
   const handleImageUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         setError("Please upload a valid image file");
         return;
       }
-      
-      // Validate file size (max 5MB)
+
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
         return;
@@ -206,33 +146,33 @@ const AddBird = () => {
     }
   };
 
-  const handlePlaceChange = (index, value) => {
-    const newPlaces = [...formData.places];
-    newPlaces[index] = value;
+  const handleNoteChange = (index, value) => {
+    const newNotes = [...formData.notes];
+    newNotes[index] = value;
     setFormData((prev) => ({
       ...prev,
-      places: newPlaces,
+      notes: newNotes,
     }));
   };
 
-  const addPlaceField = () => {
+  const addNoteField = () => {
     setFormData((prev) => ({
       ...prev,
-      places: [...prev.places, ""],
+      notes: [...prev.notes, ""],
     }));
   };
 
-  const removePlaceField = (index) => {
-    if (formData.places.length > 1) {
-      const newPlaces = formData.places.filter((_, i) => i !== index);
+  const removeNoteField = (index) => {
+    if (formData.notes.length > 1) {
+      const newNotes = formData.notes.filter((_, i) => i !== index);
       setFormData((prev) => ({
         ...prev,
-        places: newPlaces,
+        notes: newNotes,
       }));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
@@ -247,6 +187,7 @@ const AddBird = () => {
       image,
       frequency,
       residency,
+      habitat,
     } = formData;
 
     if (
@@ -267,27 +208,31 @@ const AddBird = () => {
     const filteredOtherNames = formData.otherNames.filter(
       (name) => name.trim() !== ""
     );
-    const filteredPlaces = formData.places.filter(
-      (place) => place.trim() !== ""
+    const filteredNotes = formData.notes.filter(
+      (note) => note.trim() !== ""
     );
 
-    // Create submission data (for frontend demo, we'll log it)
-    const submissionData = {
-      ...formData,
+    const birdPayload = {
+      primaryName: formData.primaryName,
       otherNames: filteredOtherNames,
-      places: filteredPlaces,
-      image: formData.imagePreview, // For demo, we send the preview URL
-      habitatMap: formData.habitatMapPreview, // For demo
+      scientificName: formData.scientificName,
+      order: formData.order,
+      family: formData.family,
+      description: formData.description,
+      sinhalaName: formData.sinhalaName,
+      tamilName: formData.tamilName,
+      frequency: formData.frequency,
+      residency: formData.residency,
+      endemic: formData.endemic,
+      places: formData.places,
+      habitat: formData.habitat,
+      notes: filteredNotes,
     };
 
-    console.log("Bird data to submit:", submissionData);
-    
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await createBird(birdPayload, formData.image, formData.habitatMap);
       setSuccessMessage("Bird data saved successfully!");
-      setIsSubmitting(false);
-      
-      // Reset form after 2 seconds
+
       setTimeout(() => {
         setFormData({
           primaryName: "",
@@ -305,18 +250,23 @@ const AddBird = () => {
           frequency: "",
           residency: "",
           endemic: false,
-          places: [""],
+          places: "",
+          habitat: "",
+          notes: [""],
         });
         setSuccessMessage("");
         navigate("/admin/bird-data");
-      }, 2000);
-    }, 1500);
-  };
+      }, 1500);
+    } catch (err) {
+  console.error("createBird failed:", err);
+  console.error("Response data:", err.response?.data);
+  console.error("Status:", err.response?.status);
+  setError(err.response?.data?.message || "Failed to save bird. Please try again.");
 
-  const showPlaces =
-    formData.frequency === "Uncommon" ||
-    formData.frequency === "Rare" ||
-    formData.frequency === "Very Rare";
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -362,7 +312,6 @@ const AddBird = () => {
                 Bird Names
               </h3>
               <div className="space-y-3">
-                {/* Primary Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Primary Name *
@@ -379,7 +328,6 @@ const AddBird = () => {
                   />
                 </div>
 
-                {/* Other Names */}
                 {formData.otherNames.map((name, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className="flex-1">
@@ -552,7 +500,6 @@ const AddBird = () => {
                 Images
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Bird Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Bird Image *
@@ -591,7 +538,6 @@ const AddBird = () => {
                   </div>
                 </div>
 
-                {/* Habitat Map Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Habitat Map
@@ -691,10 +637,50 @@ const AddBird = () => {
               </div>
             </div>
 
+            {/* Habitat */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Habitat Information
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Habitat
+                </label>
+                <input
+                  type="text"
+                  value={formData.habitat}
+                  onChange={(e) =>
+                    handleInputChange("habitat", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                  placeholder="e.g., Forests, scrublands, cultivated areas"
+                />
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 mt-8">
+                Known Locations
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Locations
+                </label>
+                <input
+                  type="text"
+                  value={formData.places}
+                  onChange={(e) =>
+                    handleInputChange("places", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                  placeholder="e.g., Sinharaja Forest, Yala National Park, Horton Plains (separate with commas)"
+                />
+                <p className="text-xs text-gray-500 mt-1">Separate multiple locations with commas</p>
+              </div>
+            </div>
+
             {/* Description */}
             <div className="bg-white rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Description
+                Description *
               </h3>
               <textarea
                 value={formData.description}
@@ -708,50 +694,51 @@ const AddBird = () => {
               />
             </div>
 
-            {/* Places (only show if rare/very rare) */}
-            {showPlaces && (
-              <div className="bg-white rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Known Locations
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  List places where this rare bird has been frequently observed
-                </p>
-                <div className="space-y-3">
-                  {formData.places.map((place, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          value={place}
-                          onChange={(e) =>
-                            handlePlaceChange(index, e.target.value)
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
-                          placeholder={`Enter location ${index + 1}`}
-                        />
-                      </div>
-                      {index > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => removePlaceField(index)}
-                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200"
-                        >
-                          <FaTimes />
-                        </button>
-                      )}
+            {/* Notes Section */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Notes
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Add important notes about this bird species
+              </p>
+              <div className="space-y-3">
+                {formData.notes.map((note, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {`Note ${index + 1}`}
+                      </label>
+                      <input
+                        type="text"
+                        value={note}
+                        onChange={(e) =>
+                          handleNoteChange(index, e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                        placeholder="Enter a note"
+                      />
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addPlaceField}
-                    className="flex items-center gap-2 px-4 py-2 text-[#506142] border border-[#506142] rounded-lg hover:bg-[#506142] hover:text-white transition-all duration-200"
-                  >
-                    <FaPlus className="text-sm" /> Add Location
-                  </button>
-                </div>
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => removeNoteField(index)}
+                        className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200 mt-5"
+                      >
+                        <FaTimes />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addNoteField}
+                  className="flex items-center gap-2 px-4 py-2 text-[#506142] border border-[#506142] rounded-lg hover:bg-[#506142] hover:text-white transition-all duration-200"
+                >
+                  <FaPlus className="text-sm" /> Add Note
+                </button>
               </div>
-            )}
+            </div>
 
             {/* Submit Button */}
             <div className="flex justify-end gap-4 pt-6">

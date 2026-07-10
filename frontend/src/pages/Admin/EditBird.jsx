@@ -94,7 +94,9 @@ const mockBirdData = {
   habitatMap: "https://via.placeholder.com/300x200/506142/ffffff?text=Habitat+Map",
   endemic: true,
   description: "The Sri Lanka Junglefowl is a member of the Galliformes bird order which is endemic to Sri Lanka, where it is the national bird.",
-  places: ["Sinharaja Forest", "Yala National Park", "Wilpattu National Park"]
+  places: "Sinharaja Forest, Yala National Park, Wilpattu National Park",
+  habitat: "Forests, scrublands, cultivated areas",
+  notes: ["This species is the national bird of Sri Lanka", "It is closely related to the Red Junglefowl"]
 };
 
 const EditBird = () => {
@@ -123,7 +125,9 @@ const EditBird = () => {
     habitatMapPreview: null,
     endemic: false,
     description: "",
-    places: []
+    places: "", // Changed to string
+    habitat: "",
+    notes: []
   });
 
   // Filtered lists for suggestions
@@ -147,7 +151,6 @@ const EditBird = () => {
     const fetchBirdData = async () => {
       try {
         setLoading(true);
-        // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 800));
         
         const birdData = mockBirdData;
@@ -168,7 +171,9 @@ const EditBird = () => {
           habitatMapPreview: birdData.habitatMap || null,
           endemic: birdData.endemic || false,
           description: birdData.description || "",
-          places: birdData.places || []
+          places: birdData.places || "",
+          habitat: birdData.habitat || "",
+          notes: birdData.notes || []
         });
         
       } catch (err) {
@@ -193,13 +198,11 @@ const EditBird = () => {
   const handleImageUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         setError("Please upload a valid image file");
         return;
       }
       
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB");
         return;
@@ -266,27 +269,27 @@ const EditBird = () => {
     }));
   };
 
-  const handlePlaceChange = (index, value) => {
-    const newPlaces = [...formData.places];
-    newPlaces[index] = value;
+  const handleNoteChange = (index, value) => {
+    const newNotes = [...formData.notes];
+    newNotes[index] = value;
     setFormData((prev) => ({
       ...prev,
-      places: newPlaces,
+      notes: newNotes,
     }));
   };
 
-  const addPlaceField = () => {
+  const addNoteField = () => {
     setFormData((prev) => ({
       ...prev,
-      places: [...prev.places, ""],
+      notes: [...prev.notes, ""],
     }));
   };
 
-  const removePlaceField = (index) => {
-    const newPlaces = formData.places.filter((_, i) => i !== index);
+  const removeNoteField = (index) => {
+    const newNotes = formData.notes.filter((_, i) => i !== index);
     setFormData((prev) => ({
       ...prev,
-      places: newPlaces,
+      notes: newNotes,
     }));
   };
 
@@ -305,6 +308,7 @@ const EditBird = () => {
       imagePreview,
       frequency,
       residency,
+      habitat,
     } = formData;
 
     if (
@@ -315,7 +319,8 @@ const EditBird = () => {
       !description ||
       !imagePreview ||
       !frequency ||
-      !residency
+      !residency ||
+      !habitat
     ) {
       setError("Please fill all required fields (marked with *) and upload a bird image");
       setSaving(false);
@@ -325,36 +330,35 @@ const EditBird = () => {
     const filteredOtherNames = formData.otherNames.filter(
       (name) => name.trim() !== ""
     );
-    const filteredPlaces = formData.places.filter(
-      (place) => place.trim() !== ""
+    const filteredNotes = formData.notes.filter(
+      (note) => note.trim() !== ""
     );
+
+    // Convert places string to array by splitting by commas
+    const placesArray = formData.places
+      ? formData.places.split(',').map(place => place.trim()).filter(place => place)
+      : [];
 
     const submissionData = {
       ...formData,
       otherNames: filteredOtherNames,
-      places: filteredPlaces,
+      places: placesArray,
+      notes: filteredNotes,
       image: formData.imagePreview,
       habitatMap: formData.habitatMapPreview,
     };
 
     console.log("Updated bird data:", submissionData);
     
-    // Simulate saving delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setSuccessMessage("Bird updated successfully!");
     setSaving(false);
     
-    // Navigate after 2 seconds
     setTimeout(() => {
       navigate("/admin/bird-data", { state: { message: "Bird updated successfully!" } });
     }, 2000);
   };
-
-  const showPlaces =
-    formData.frequency === "Uncommon" ||
-    formData.frequency === "Rare" ||
-    formData.frequency === "Very Rare";
 
   if (loading) {
     return (
@@ -434,7 +438,6 @@ const EditBird = () => {
                 Bird Names
               </h3>
               <div className="space-y-3">
-                {/* Primary Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Primary Name *
@@ -451,7 +454,6 @@ const EditBird = () => {
                   />
                 </div>
 
-                {/* Other Names */}
                 {formData.otherNames.map((name, index) => (
                   <div key={index} className="flex items-center gap-3">
                     <div className="flex-1">
@@ -622,7 +624,6 @@ const EditBird = () => {
                 Images
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Bird Image Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Bird Image *
@@ -661,7 +662,6 @@ const EditBird = () => {
                   </div>
                 </div>
 
-                {/* Habitat Map Upload */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Habitat Map
@@ -761,10 +761,48 @@ const EditBird = () => {
               </div>
             </div>
 
+            {/* Habitat Information */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Habitat Information
+              </h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Habitat *
+                </label>
+                <input
+                  type="text"
+                  value={formData.habitat}
+                  onChange={(e) =>
+                    handleInputChange("habitat", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                  required
+                  placeholder="e.g., Forests, scrublands, cultivated areas"
+                />
+              </div>
+
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Known Locations
+                </label>
+                <input
+                  type="text"
+                  value={formData.places}
+                  onChange={(e) =>
+                    handleInputChange("places", e.target.value)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                  placeholder="e.g., Sinharaja Forest, Yala National Park, Horton Plains (separate with commas)"
+                />
+                <p className="text-xs text-gray-500 mt-1">Separate multiple locations with commas</p>
+              </div>
+            </div>
+
             {/* Description */}
             <div className="bg-white rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                Description
+                Description *
               </h3>
               <textarea
                 value={formData.description}
@@ -778,48 +816,49 @@ const EditBird = () => {
               />
             </div>
 
-            {/* Places (only show if rare/very rare) */}
-            {showPlaces && (
-              <div className="bg-white rounded-lg p-4">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                  Known Locations
-                </h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  List places where this rare bird has been frequently observed
-                </p>
-                <div className="space-y-3">
-                  {formData.places.map((place, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <input
-                          type="text"
-                          value={place}
-                          onChange={(e) =>
-                            handlePlaceChange(index, e.target.value)
-                          }
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
-                          placeholder={`Enter location ${index + 1}`}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removePlaceField(index)}
-                        className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200"
-                      >
-                        <FaTimes />
-                      </button>
+            {/* Notes Section */}
+            <div className="bg-white rounded-lg p-4">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Notes
+              </h3>
+              <p className="text-sm text-gray-600 mb-4">
+                Add important notes about this bird species
+              </p>
+              <div className="space-y-3">
+                {formData.notes.map((note, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {`Note ${index + 1}`}
+                      </label>
+                      <input
+                        type="text"
+                        value={note}
+                        onChange={(e) =>
+                          handleNoteChange(index, e.target.value)
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#506142] focus:border-transparent"
+                        placeholder="Enter a note"
+                      />
                     </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addPlaceField}
-                    className="flex items-center gap-2 px-4 py-2 text-[#506142] border border-[#506142] rounded-lg hover:bg-[#506142] hover:text-white transition-all duration-200"
-                  >
-                    <FaPlus className="text-sm" /> Add Location
-                  </button>
-                </div>
+                    <button
+                      type="button"
+                      onClick={() => removeNoteField(index)}
+                      className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-all duration-200 mt-5"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addNoteField}
+                  className="flex items-center gap-2 px-4 py-2 text-[#506142] border border-[#506142] rounded-lg hover:bg-[#506142] hover:text-white transition-all duration-200"
+                >
+                  <FaPlus className="text-sm" /> Add Note
+                </button>
               </div>
-            )}
+            </div>
 
             {/* Submit Button */}
             <div className="flex justify-end gap-4 pt-6">

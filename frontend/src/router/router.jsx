@@ -53,12 +53,12 @@ const router = createBrowserRouter([
   { path: "/complete-registration", element: <CompleteRegistration /> },
   { path: "/forgot-password", element: <ForgotPassword /> },
   { path: "/change-password", element: <ChangePassword /> },
-  // { path: "/bird/:birdId", element: <Bird /> },
+  { path: "/bird/:id", element: <Bird /> },
   { path: "/events", element: <Events /> },
   { path: "/articles", element: <Articles /> },
   { path: "/about", element: <About /> },
   { path: "/birdlist", element: <Birdlist /> },
-  { path: "/bird", element: <Bird /> },
+  // { path: "/bird", element: <Bird /> },
 
   // birder
   { path: "/create-profile", element: <CreateProfile /> },
