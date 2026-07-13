@@ -227,6 +227,7 @@ const BirdList = () => {
                   <th className="px-6 py-4 text-left font-semibold">Order</th>
                   <th className="px-6 py-4 text-left font-semibold">Family</th>
                   <th className="px-6 py-4 text-center font-semibold w-24">Actions</th>
+                  <th className="px-6 py-4 text-center font-semibold w-24">Featured Birds</th>
                 </tr>
               </thead>
               <tbody>

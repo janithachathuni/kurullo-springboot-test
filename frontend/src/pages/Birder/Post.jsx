@@ -1,163 +1,15 @@
-import React, { useState, useRef } from 'react';
-import { FaHeart, FaRegHeart, FaComment, FaShare, FaTrash, FaChevronLeft, FaChevronRight, FaEllipsisV } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaHeart, FaRegHeart, FaComment, FaShare, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import profileimg from "../../assets/default_profile_pic.png";
+import { getFeed, togglePostLike, getComments, addComment, toggleCommentLike, deletePost } from '../../utils/api';
 
-const Post = () => {
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      userId: 'user1',
-      displayName: 'John Doe',
-      username: 'johndoe',
-      profilePic: null,
-      content: 'Just spotted a beautiful Blue Jay in my backyard! 🐦 #birdwatching #nature',
-      images: [
-        'https://picsum.photos/seed/bird1/600/400',
-        'https://picsum.photos/seed/bird2/600/400',
-        'https://picsum.photos/seed/bird3/600/400',
-      ],
-      tags: ['Blue Jay', 'Backyard'],
-      likes: 12,
-      liked: false,
-      comments: [
-        {
-          id: 1,
-          userId: 'user2',
-          displayName: 'Jane Smith',
-          username: 'janesmith',
-          profilePic: null,
-          content: 'Beautiful! Where did you spot it?',
-          likes: 3,
-          liked: false,
-          replies: [
-            {
-              id: 1,
-              userId: 'user1',
-              displayName: 'John Doe',
-              username: 'johndoe',
-              profilePic: null,
-              content: 'In my backyard actually! They come every morning.',
-              likes: 1,
-              liked: false,
-              replies: [
-                {
-                  id: 1,
-                  userId: 'user3',
-                  displayName: 'Alice Johnson',
-                  username: 'alicej',
-                  profilePic: null,
-                  content: '@johndoe That\'s amazing! We only get sparrows here.',
-                  likes: 2,
-                  liked: false,
-                  replies: []
-                }
-              ]
-            },
-            {
-              id: 2,
-              userId: 'user3',
-              displayName: 'Alice Johnson',
-              username: 'alicej',
-              profilePic: null,
-              content: 'Blue Jays are so stunning! Great shot!',
-              likes: 0,
-              liked: false,
-              replies: []
-            }
-          ]
-        },
-        {
-          id: 2,
-          userId: 'user4',
-          displayName: 'Bob Wilson',
-          username: 'bobw',
-          profilePic: null,
-          content: 'We have a pair that visits our feeder too!',
-          likes: 2,
-          liked: false,
-          replies: []
-        }
-      ],
-      timestamp: '2 hours ago',
-    },
+const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
-    {
-      id: 2,
-      userId: 'user4',
-      displayName: 'Bob Wilson',
-      username: 'bobw',
-      profilePic: null,
-      content: 'We have a pair that visits our feeder too!',
-      images: [
-        'https://picsum.photos/seed/bird1/600/400',
-        'https://picsum.photos/seed/bird2/600/400',
-        'https://picsum.photos/seed/bird3/600/400',
-      ],
-      tags: ['Blue Jay', 'Backyard'],
-      likes: 12,
-      liked: false,
-      comments: [
-        {
-          id: 1,
-          userId: 'user2',
-          displayName: 'Jane Smith',
-          username: 'janesmith',
-          profilePic: null,
-          content: 'Beautiful! Where did you spot it?',
-          likes: 3,
-          liked: false,
-          replies: [
-            {
-              id: 1,
-              userId: 'user1',
-              displayName: 'John Doe',
-              username: 'johndoe',
-              profilePic: null,
-              content: 'In my backyard actually! They come every morning.',
-              likes: 1,
-              liked: false,
-              replies: [
-                {
-                  id: 1,
-                  userId: 'user3',
-                  displayName: 'Alice Johnson',
-                  username: 'alicej',
-                  profilePic: null,
-                  content: '@johndoe That\'s amazing! We only get sparrows here.',
-                  likes: 2,
-                  liked: false,
-                  replies: []
-                }
-              ]
-            },
-            {
-              id: 2,
-              userId: 'user3',
-              displayName: 'Alice Johnson',
-              username: 'alicej',
-              profilePic: null,
-              content: 'Blue Jays are so stunning! Great shot!',
-              likes: 0,
-              liked: false,
-              replies: []
-            }
-          ]
-        },
-        {
-          id: 2,
-          userId: 'user4',
-          displayName: 'Bob Wilson',
-          username: 'bobw',
-          profilePic: null,
-          content: 'We have a pair that visits our feeder too!',
-          likes: 2,
-          liked: false,
-          replies: []
-        }
-      ],
-      timestamp: '2 hours ago',
-    }
-  ]);
+const Post = ({userId}) => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [commentsByPost, setCommentsByPost] = useState({});
+  const [commentsLoaded, setCommentsLoaded] = useState({});
 
   const [replyInputs, setReplyInputs] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
@@ -167,206 +19,152 @@ const Post = () => {
   const [showDeletePopup, setShowDeletePopup] = useState(null);
   const [showMenu, setShowMenu] = useState(null);
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  useEffect(() => {
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        const page = userId
+          ? await getPostsByUser(userId, 0, 10)
+          : await getFeed(0, 10);
+        setPosts(page.content || []);
+      } catch (err) {
+        console.error("Failed to fetch posts:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPosts();
+  }, [userId]);
 
-    if (diffDays <= 7) {
-      return `${diffDays} ${diffDays === 1 ? "day" : "days"}`;
-    } else {
-      return date.toLocaleDateString("en-GB", {
-        day: "numeric",
-        month: "short",
-      });
+  const formatTimestamp = (isoString) => {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return "just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  };
+
+  const handleLike = async (postId) => {
+    setPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          likedByCurrentUser: !post.likedByCurrentUser,
+          likesCount: post.likedByCurrentUser ? post.likesCount - 1 : post.likesCount + 1
+        };
+      }
+      return post;
+    }));
+
+    try {
+      await togglePostLike(postId);
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
+      setPosts(prev => prev.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            likedByCurrentUser: !post.likedByCurrentUser,
+            likesCount: post.likedByCurrentUser ? post.likesCount - 1 : post.likesCount + 1
+          };
+        }
+        return post;
+      }));
     }
   };
 
-  const handleLike = (postId) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          liked: !post.liked,
-          likes: post.liked ? post.likes - 1 : post.likes + 1
-        };
-      }
-      return post;
-    }));
+  const loadComments = async (postId) => {
+    try {
+      const comments = await getComments(postId);
+      setCommentsByPost(prev => ({ ...prev, [postId]: comments }));
+      setCommentsLoaded(prev => ({ ...prev, [postId]: true }));
+    } catch (err) {
+      console.error("Failed to load comments:", err);
+    }
   };
 
-  const handleCommentLike = (postId, commentId) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: post.comments.map(comment => {
-            if (comment.id === commentId) {
-              return {
-                ...comment,
-                liked: !comment.liked,
-                likes: comment.liked ? comment.likes - 1 : comment.likes + 1
-              };
-            }
-            return comment;
-          })
-        };
-      }
-      return post;
-    }));
+  const toggleComments = (postId) => {
+    const opening = !showComments[postId];
+    setShowComments(prev => ({ ...prev, [postId]: opening }));
+    if (opening && !commentsLoaded[postId]) {
+      loadComments(postId);
+    }
   };
 
-  const handleReplyLike = (postId, commentId, replyId) => {
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: post.comments.map(comment => {
-            if (comment.id === commentId) {
-              return {
-                ...comment,
-                replies: comment.replies.map(reply => {
-                  if (reply.id === replyId) {
-                    return {
-                      ...reply,
-                      liked: !reply.liked,
-                      likes: reply.liked ? reply.likes - 1 : reply.likes + 1
-                    };
-                  }
-                  return reply;
-                })
-              };
-            }
-            return comment;
-          })
-        };
-      }
-      return post;
-    }));
-  };
-
-  const handleAddComment = (postId) => {
+  const handleAddComment = async (postId) => {
     const input = commentInputs[postId];
     if (!input || !input.trim()) return;
 
-    const newComment = {
-      id: Date.now(),
-      userId: 'currentUser',
-      displayName: 'You',
-      username: 'currentuser',
-      profilePic: null,
-      content: input,
-      likes: 0,
-      liked: false,
-      replies: []
-    };
-
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [...post.comments, newComment]
-        };
-      }
-      return post;
-    }));
-
-    setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+    try {
+      await addComment(postId, input);
+      setCommentInputs(prev => ({ ...prev, [postId]: '' }));
+      await loadComments(postId);
+      setPosts(prev => prev.map(post =>
+        post.id === postId ? { ...post, commentsCount: post.commentsCount + 1 } : post
+      ));
+    } catch (err) {
+      console.error("Failed to add comment:", err);
+    }
   };
 
-  const handleAddReply = (postId, commentId) => {
+  const handleAddReply = async (postId, commentId) => {
     const key = `${postId}-${commentId}`;
     const input = replyInputs[key];
     if (!input || !input.trim()) return;
 
-    const newReply = {
-      id: Date.now(),
-      userId: 'currentUser',
-      displayName: 'You',
-      username: 'currentuser',
-      profilePic: null,
-      content: input,
-      likes: 0,
-      liked: false,
-      replies: []
-    };
-
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: post.comments.map(comment => {
-            if (comment.id === commentId) {
-              return {
-                ...comment,
-                replies: [...comment.replies, newReply]
-              };
-            }
-            return comment;
-          })
-        };
-      }
-      return post;
-    }));
-
-    setReplyInputs(prev => ({ ...prev, [key]: '' }));
-    setShowReplies(prev => ({ ...prev, [`${postId}-${commentId}`]: true }));
+    try {
+      await addComment(postId, input, commentId);
+      setReplyInputs(prev => ({ ...prev, [key]: '' }));
+      setShowReplies(prev => ({ ...prev, [key]: true }));
+      await loadComments(postId);
+      setPosts(prev => prev.map(post =>
+        post.id === postId ? { ...post, commentsCount: post.commentsCount + 1 } : post
+      ));
+    } catch (err) {
+      console.error("Failed to add reply:", err);
+    }
   };
 
-  const handleAddNestedReply = (postId, commentId, parentReplyId) => {
+  const handleAddNestedReply = async (postId, commentId, parentReplyId) => {
     const key = `${postId}-${commentId}-${parentReplyId}`;
     const input = replyInputs[key];
     if (!input || !input.trim()) return;
 
-    let parentUsername = '';
-    setPosts(prev => {
-      const post = prev.find(p => p.id === postId);
-      const comment = post?.comments.find(c => c.id === commentId);
-      const parentReply = comment?.replies.find(r => r.id === parentReplyId);
-      parentUsername = parentReply?.username || '';
-      return prev;
-    });
+    try {
+      await addComment(postId, input, parentReplyId);
+      setReplyInputs(prev => ({ ...prev, [key]: '' }));
+      await loadComments(postId);
+      setPosts(prev => prev.map(post =>
+        post.id === postId ? { ...post, commentsCount: post.commentsCount + 1 } : post
+      ));
+    } catch (err) {
+      console.error("Failed to add nested reply:", err);
+    }
+  };
 
-    const newReply = {
-      id: Date.now(),
-      userId: 'currentUser',
-      displayName: 'You',
-      username: 'currentuser',
-      profilePic: null,
-      content: `@${parentUsername} ${input}`,
-      likes: 0,
-      liked: false,
-      replies: []
-    };
+  const handleCommentLike = async (postId, commentId) => {
+    try {
+      await toggleCommentLike(postId, commentId);
+      await loadComments(postId);
+    } catch (err) {
+      console.error("Failed to toggle comment like:", err);
+    }
+  };
 
-    setPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: post.comments.map(comment => {
-            if (comment.id === commentId) {
-              return {
-                ...comment,
-                replies: comment.replies.map(reply => {
-                  if (reply.id === parentReplyId) {
-                    return {
-                      ...reply,
-                      replies: [...reply.replies, newReply]
-                    };
-                  }
-                  return reply;
-                })
-              };
-            }
-            return comment;
-          })
-        };
-      }
-      return post;
-    }));
-
-    setReplyInputs(prev => ({ ...prev, [key]: '' }));
+  const handleReplyLike = async (postId, commentId, replyId) => {
+    try {
+      await toggleCommentLike(postId, replyId);
+      await loadComments(postId);
+    } catch (err) {
+      console.error("Failed to toggle reply like:", err);
+    }
   };
 
   const handleDelete = (postId) => {
@@ -374,23 +172,19 @@ const Post = () => {
     setShowMenu(null);
   };
 
-  const confirmDelete = (postId) => {
-    setPosts(prev => prev.filter(post => post.id !== postId));
-    setShowDeletePopup(null);
+  const confirmDelete = async (postId) => {
+    try {
+      await deletePost(postId);
+      setPosts(prev => prev.filter(post => post.id !== postId));
+    } catch (err) {
+      console.error("Failed to delete post:", err);
+    } finally {
+      setShowDeletePopup(null);
+    }
   };
 
   const toggleReplies = (commentKey) => {
-    setShowReplies(prev => ({
-      ...prev,
-      [commentKey]: !prev[commentKey]
-    }));
-  };
-
-  const toggleComments = (postId) => {
-    setShowComments(prev => ({
-      ...prev,
-      [postId]: !prev[postId]
-    }));
+    setShowReplies(prev => ({ ...prev, [commentKey]: !prev[commentKey] }));
   };
 
   const toggleMenu = (postId) => {
@@ -415,125 +209,37 @@ const Post = () => {
     const [showReplyInput, setShowReplyInput] = useState(false);
     const replyKey = `${postId}-${commentId}-${reply.id}`;
 
-    if (depth > 2) {
-      return (
-        <div className="ml-6 mt-3">
-          <div className="flex items-start gap-2">
-            <img 
-              src={reply.profilePic || profileimg} 
-              alt="Profile" 
-              className="w-6 h-6 rounded-full object-cover border border-[var(--border)]"
-            />
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                  {reply.displayName}
-                </span>
-                <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                  @{reply.username}
-                </span>
-              </div>
-              <p className="text-sm" style={{ color: "var(--text-primary)" }}>
-                {reply.content}
-              </p>
-              <div className="flex items-center gap-3 mt-1">
-                <button 
-                  onClick={() => handleReplyLike(postId, commentId, reply.id)}
-                  className={`flex items-center gap-1 text-xs transition ${
-                    reply.liked ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
-                  }`}
-                >
-                  {reply.liked ? <FaHeart size={12} /> : <FaRegHeart size={12} />}
-                  {reply.likes > 0 && reply.likes}
-                </button>
-                <button 
-                  onClick={() => setShowReplyInput(!showReplyInput)}
-                  className="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
-                >
-                  Reply
-                </button>
-              </div>
-              {showReplyInput && (
-                <div className="mt-2">
-                  <div className="flex items-start gap-2">
-                    <img 
-                      src={profileimg} 
-                      alt="You" 
-                      className="w-6 h-6 rounded-full object-cover border border-[var(--border)]"
-                    />
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        placeholder={`Reply to @${reply.username}...`}
-                        value={replyInputs[replyKey] || ''}
-                        onChange={(e) => setReplyInputs(prev => ({ ...prev, [replyKey]: e.target.value }))}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter') {
-                            handleAddNestedReply(postId, commentId, reply.id);
-                            setShowReplyInput(false);
-                          }
-                        }}
-                        className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                        style={{ 
-                          borderColor: "var(--border)",
-                          backgroundColor: "var(--bg-primary)", 
-                          color: "var(--text-primary)"
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-              {reply.replies && reply.replies.length > 0 && (
-                <div className="ml-4">
-                  {reply.replies.map(nestedReply => (
-                    <ReplyComponent 
-                      key={nestedReply.id} 
-                      reply={nestedReply} 
-                      postId={postId} 
-                      commentId={commentId}
-                      depth={depth + 1}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className={`${depth === 1 ? 'ml-6' : 'ml-4'} mt-3`}>
         <div className="flex items-start gap-2">
-          <img 
-            src={reply.profilePic || profileimg} 
-            alt="Profile" 
+          <img
+            src={reply.author?.profilePic || profileimg}
+            alt="Profile"
             className="w-6 h-6 rounded-full object-cover border border-[var(--border)]"
           />
           <div className="flex-1">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                {reply.displayName}
+                {reply.author?.displayName}
               </span>
               <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                @{reply.username}
+                @{reply.author?.username}
               </span>
             </div>
             <p className="text-sm" style={{ color: "var(--text-primary)" }}>
               {reply.content}
             </p>
             <div className="flex items-center gap-3 mt-1">
-              <button 
+              <button
                 onClick={() => handleReplyLike(postId, commentId, reply.id)}
                 className={`flex items-center gap-1 text-xs transition ${
-                  reply.liked ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+                  reply.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
                 }`}
               >
-                {reply.liked ? <FaHeart size={12} /> : <FaRegHeart size={12} />}
-                {reply.likes > 0 && reply.likes}
+                {reply.likedByCurrentUser ? <FaHeart size={12} /> : <FaRegHeart size={12} />}
+                {reply.likesCount > 0 && reply.likesCount}
               </button>
-              <button 
+              <button
                 onClick={() => setShowReplyInput(!showReplyInput)}
                 className="text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition"
               >
@@ -543,17 +249,17 @@ const Post = () => {
             {showReplyInput && (
               <div className="mt-2">
                 <div className="flex items-start gap-2">
-                  <img 
-                    src={profileimg} 
-                    alt="You" 
+                  <img
+                    src={profileimg}
+                    alt="You"
                     className="w-6 h-6 rounded-full object-cover border border-[var(--border)]"
                   />
                   <div className="flex-1">
                     <input
                       type="text"
-                      placeholder={`Reply to @${reply.username}...`}
-                      value={replyInputs[`${postId}-${commentId}-${reply.id}`] || ''}
-                      onChange={(e) => setReplyInputs(prev => ({ ...prev, [`${postId}-${commentId}-${reply.id}`]: e.target.value }))}
+                      placeholder={`Reply to @${reply.author?.username}...`}
+                      value={replyInputs[replyKey] || ''}
+                      onChange={(e) => setReplyInputs(prev => ({ ...prev, [replyKey]: e.target.value }))}
                       onKeyPress={(e) => {
                         if (e.key === 'Enter') {
                           handleAddNestedReply(postId, commentId, reply.id);
@@ -561,9 +267,9 @@ const Post = () => {
                         }
                       }}
                       className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                      style={{ 
+                      style={{
                         borderColor: "var(--border)",
-                        backgroundColor: "var(--bg-primary)", 
+                        backgroundColor: "var(--bg-primary)",
                         color: "var(--text-primary)"
                       }}
                     />
@@ -572,12 +278,12 @@ const Post = () => {
               </div>
             )}
             {reply.replies && reply.replies.length > 0 && (
-              <div>
+              <div className={depth > 1 ? "ml-4" : ""}>
                 {reply.replies.map(nestedReply => (
-                  <ReplyComponent 
-                    key={nestedReply.id} 
-                    reply={nestedReply} 
-                    postId={postId} 
+                  <ReplyComponent
+                    key={nestedReply.id}
+                    reply={nestedReply}
+                    postId={postId}
                     commentId={commentId}
                     depth={depth + 1}
                   />
@@ -590,58 +296,67 @@ const Post = () => {
     );
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-12 h-12 border-4 border-t-[var(--accent)] border-gray-200 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       {posts.map((post) => {
         const imageIndex = currentImageIndex[post.id] || 0;
-        const totalImages = post.images?.length || 0;
+        const totalImages = post.photos?.length || 0;
         const showCommentsSection = showComments[post.id] || false;
+        const comments = commentsByPost[post.id] || [];
+        const isOwnPost = currentUser && post.author?.userId === currentUser.id;
 
         return (
-          <div 
-            key={post.id} 
+          <div
+            key={post.id}
             className="rounded-lg overflow-hidden"
-            style={{ 
+            style={{
               backgroundColor: "var(--bg-card)",
               border: "1px solid var(--border)"
             }}
           >
-            {/* Post Header - No gap to images */}
+            {/* Post Header */}
             <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: "var(--border)" }}>
               <div className="flex items-center space-x-3">
-                <img 
-                  src={post.profilePic || profileimg} 
-                  alt="Profile" 
-                  className="w-10 h-10 rounded-full object-cover border" 
+                <img
+                  src={post.author?.profilePic || profileimg}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full object-cover border"
                   style={{ borderColor: "var(--border)" }}
                 />
                 <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
-                  {post.displayName}
+                  {post.author?.displayName}
                 </span>
                 <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  @{post.username}
+                  @{post.author?.username}
                 </span>
                 <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  · {post.timestamp}
+                  · {formatTimestamp(post.createdAt)}
                 </span>
               </div>
               <div className="relative">
-                <button 
+                <button
                   onClick={() => toggleMenu(post.id)}
                   className="p-2 rounded-full transition hover:opacity-70"
                   style={{ color: "var(--text-secondary)" }}
                 >
                   <FaEllipsisV size={18} />
                 </button>
-                
-                {/* Dropdown Menu */}
+
                 {showMenu === post.id && (
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setShowMenu(null)} />
-                    <div 
+                    <div
                       className="absolute right-0 mt-1 w-48 rounded-xl shadow-lg z-20 overflow-hidden"
-                      style={{ 
-                        backgroundColor: "var(--bg-card)", 
+                      style={{
+                        backgroundColor: "var(--bg-card)",
                         border: "1px solid var(--border)"
                       }}
                     >
@@ -679,12 +394,12 @@ const Post = () => {
               </div>
             </div>
 
-            {/* Image Carousel - Directly below header */}
+            {/* Image Carousel */}
             {totalImages > 0 && (
               <div className="relative" style={{ backgroundColor: "var(--bg-secondary)" }}>
                 <div className="relative w-full">
-                  <img 
-                    src={post.images[imageIndex]} 
+                  <img
+                    src={post.photos[imageIndex].imageUrl}
                     alt={`Post image ${imageIndex + 1}`}
                     className="w-full h-auto object-contain max-h-[400px]"
                   />
@@ -703,8 +418,8 @@ const Post = () => {
                         ›
                       </button>
                       <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                        {post.images.map((_, idx) => (
-                          <div 
+                        {post.photos.map((_, idx) => (
+                          <div
                             key={idx}
                             className={`w-1.5 h-1.5 rounded-full ${
                               idx === imageIndex ? "bg-white" : "bg-white/50"
@@ -718,16 +433,15 @@ const Post = () => {
               </div>
             )}
 
-            {/* Content - Description and Tags below images */}
+            {/* Content */}
             <div className="p-4">
-              {post.content && (
-                <p style={{ color: "var(--text-primary)" }} className="mb-3">{post.content}</p>
+              {post.description && (
+                <p style={{ color: "var(--text-primary)" }} className="mb-3">{post.description}</p>
               )}
 
-              {/* Tags */}
-              {post.tags && post.tags.length > 0 && (
+              {post.photos?.[imageIndex]?.birdTags?.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag, idx) => (
+                  {post.photos[imageIndex].birdTags.map((tag, idx) => (
                     <span
                       key={idx}
                       className="text-sm underline font-medium hover:opacity-80 transition cursor-pointer"
@@ -740,12 +454,11 @@ const Post = () => {
               )}
             </div>
 
-            {/* Border */}
             <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
 
             {/* Action Buttons */}
             <div className="flex items-center justify-end space-x-6 p-4">
-              <button 
+              <button
                 className="flex items-center space-x-1 transition hover:opacity-70"
                 style={{ color: "var(--text-secondary)" }}
               >
@@ -759,39 +472,39 @@ const Post = () => {
                 }`}
               >
                 <FaComment className="w-5 h-5" />
-                <span>{post.comments.length}</span>
+                <span>{post.commentsCount}</span>
               </button>
 
               <button
                 onClick={() => handleLike(post.id)}
                 className={`flex items-center space-x-1 transition ${
-                  post.liked ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+                  post.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
                 }`}
               >
-                {post.liked ? <FaHeart className="w-5 h-5" /> : <FaRegHeart className="w-5 h-5" />}
-                <span>{post.likes}</span>
+                {post.likedByCurrentUser ? <FaHeart className="w-5 h-5" /> : <FaRegHeart className="w-5 h-5" />}
+                <span>{post.likesCount}</span>
               </button>
 
-              {/* Delete button - moved to bottom */}
-              <button 
-                onClick={() => handleDelete(post.id)}
-                className="flex items-center space-x-1 transition hover:opacity-70"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                <FaTrash className="w-5 h-5" />
-              </button>
+              {isOwnPost && (
+                <button
+                  onClick={() => handleDelete(post.id)}
+                  className="flex items-center space-x-1 transition hover:opacity-70"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  <FaTrash className="w-5 h-5" />
+                </button>
+              )}
             </div>
 
-            {/* Comments Section - Only shown when toggled */}
+            {/* Comments Section */}
             {showCommentsSection && (
               <div className="border-t-2" style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-secondary)" }}>
-                {/* Comment Input */}
                 <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
                   <div className="flex space-x-3">
                     <img
                       src={profileimg}
                       alt="Your profile"
-                      className="w-8 h-8 rounded-full border" 
+                      className="w-8 h-8 rounded-full border"
                       style={{ borderColor: "var(--border)" }}
                     />
                     <div className="flex-1">
@@ -801,9 +514,9 @@ const Post = () => {
                         onChange={(e) => setCommentInputs(prev => ({ ...prev, [post.id]: e.target.value }))}
                         placeholder="Write a comment..."
                         className="w-full p-2 border rounded resize-none focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                        style={{ 
+                        style={{
                           borderColor: "var(--border)",
-                          backgroundColor: "var(--bg-primary)", 
+                          backgroundColor: "var(--bg-primary)",
                           color: "var(--text-primary)"
                         }}
                         rows="2"
@@ -811,8 +524,8 @@ const Post = () => {
                       <button
                         onClick={() => handleAddComment(post.id)}
                         className="mt-2 px-4 py-1 rounded transition text-sm"
-                        style={{ 
-                          backgroundColor: "var(--accent)", 
+                        style={{
+                          backgroundColor: "var(--accent)",
                           color: "var(--accent-text)",
                         }}
                       >
@@ -822,33 +535,32 @@ const Post = () => {
                   </div>
                 </div>
 
-                {/* Comments List */}
                 <div className="max-h-96 overflow-y-auto">
-                  {post.comments.map((comment) => (
+                  {comments.map((comment) => (
                     <div key={comment.id} className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
                       <div className="flex justify-between items-start mb-2">
                         <div className="flex items-center space-x-2">
                           <img
-                            src={comment.profilePic || profileimg}
+                            src={comment.author?.profilePic || profileimg}
                             alt="Commenter"
-                            className="w-6 h-6 rounded-full border" 
+                            className="w-6 h-6 rounded-full border"
                             style={{ borderColor: "var(--border)" }}
                           />
                           <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                            {comment.displayName}
+                            {comment.author?.displayName}
                           </span>
                           <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                            @{comment.username}
+                            @{comment.author?.username}
                           </span>
                         </div>
-                        <button 
+                        <button
                           onClick={() => handleCommentLike(post.id, comment.id)}
                           className={`text-xs transition ${
-                            comment.liked ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+                            comment.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
                           }`}
                         >
-                          {comment.liked ? <FaHeart className="inline w-3 h-3" /> : <FaRegHeart className="inline w-3 h-3" />}
-                          {comment.likes > 0 && ` ${comment.likes}`}
+                          {comment.likedByCurrentUser ? <FaHeart className="inline w-3 h-3" /> : <FaRegHeart className="inline w-3 h-3" />}
+                          {comment.likesCount > 0 && ` ${comment.likesCount}`}
                         </button>
                       </div>
 
@@ -861,17 +573,16 @@ const Post = () => {
                         className="text-xs transition hover:opacity-70 mt-1"
                         style={{ color: "var(--text-secondary)" }}
                       >
-                        {comment.replies.length > 0 && `${comment.replies.length} `}
+                        {comment.replies?.length > 0 && `${comment.replies.length} `}
                         Reply
                       </button>
 
-                      {/* Reply Input */}
                       <div className="mt-2">
                         <div className="flex space-x-2">
                           <img
                             src={profileimg}
                             alt="Your profile"
-                            className="w-6 h-6 rounded-full border" 
+                            className="w-6 h-6 rounded-full border"
                             style={{ borderColor: "var(--border)" }}
                           />
                           <div className="flex-1">
@@ -886,9 +597,9 @@ const Post = () => {
                                 }
                               }}
                               className="w-full p-1 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
-                              style={{ 
+                              style={{
                                 borderColor: "var(--border)",
-                                backgroundColor: "var(--bg-primary)", 
+                                backgroundColor: "var(--bg-primary)",
                                 color: "var(--text-primary)"
                               }}
                             />
@@ -896,14 +607,13 @@ const Post = () => {
                         </div>
                       </div>
 
-                      {/* Replies */}
                       {showReplies[`${post.id}-${comment.id}`] && comment.replies && comment.replies.length > 0 && (
                         <div className="mt-2">
                           {comment.replies.map((reply) => (
-                            <ReplyComponent 
-                              key={reply.id} 
-                              reply={reply} 
-                              postId={post.id} 
+                            <ReplyComponent
+                              key={reply.id}
+                              reply={reply}
+                              postId={post.id}
                               commentId={comment.id}
                               depth={1}
                             />
@@ -922,7 +632,7 @@ const Post = () => {
       {/* Delete Popup */}
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-full max-w-md" style={{ backgroundColor: "var(--bg-card)" }}>
+          <div className="p-6 rounded-lg w-full max-w-md" style={{ backgroundColor: "var(--bg-card)" }}>
             <h3 className="text-lg font-semibold mb-2" style={{ color: "var(--text-primary)" }}>
               Delete Post
             </h3>
@@ -933,7 +643,7 @@ const Post = () => {
               <button
                 onClick={() => setShowDeletePopup(null)}
                 className="px-4 py-2 border rounded-lg hover:opacity-80 transition"
-                style={{ 
+                style={{
                   borderColor: "var(--border)",
                   color: "var(--text-primary)"
                 }}

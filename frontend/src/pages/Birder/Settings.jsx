@@ -2,6 +2,7 @@ import React from 'react';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import { useTheme } from '../../context/ThemeContext';
+import { FiSun, FiMoon } from 'react-icons/fi';
 
 const Settings = () => {
   const { theme, toggleTheme } = useTheme();
@@ -19,17 +20,24 @@ const Settings = () => {
           <div className="mt-6">
             <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--text-primary)" }}>Appearance</h2>
             <div className="flex items-center justify-between p-4 rounded-lg" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}>
-              <span style={{ color: "var(--text-secondary)" }}>Theme</span>
+              <div className="flex items-center gap-2">
+                <span style={{ color: "var(--text-secondary)" }}>
+                  {theme === "light" ? "Dark Mode" : "Light Mode"}
+                </span>
+              </div>
               <button
                 onClick={toggleTheme}
+                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none flex-shrink-0"
                 style={{
-                  backgroundColor: "var(--bg-secondary)",
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border)",
+                  backgroundColor: theme === "dark" ? "var(--accent)" : "#d1d5db",
                 }}
-                className="px-3 py-2 rounded-lg text-sm transition hover:opacity-80"
               >
-                {theme === "light" ? "🌙 Dark" : "☀️ Light"}
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm`}
+                  style={{
+                    transform: theme === "dark" ? "translateX(22px)" : "translateX(2px)",
+                  }}
+                />
               </button>
             </div>
           </div>

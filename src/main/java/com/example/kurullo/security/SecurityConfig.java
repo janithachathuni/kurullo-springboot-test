@@ -1,7 +1,5 @@
 package com.example.kurullo.security;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,8 +11,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-// import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
@@ -44,22 +42,30 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
-                .requestMatchers("/api/profile/**").permitAll()
-                .requestMatchers("/api/notifications/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/birds/**", "/api/bird-orders/**", "/api/bird-families/**").permitAll()
-                // .requestMatchers(HttpMethod.POST, "/api/birds/**").authenticated()
-                // .requestMatchers(HttpMethod.PUT, "/api/birds/**").authenticated()
-                // .requestMatchers(HttpMethod.DELETE, "/api/birds/**").authenticated()
-                .requestMatchers("/api/birds/**", "/api/bird-orders/**", "/api/bird-families/**").permitAll()
-                .anyRequest().authenticated()
-            )
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers("/api/auth/**", "/oauth2/**", "/login/oauth2/**").permitAll()
+            .requestMatchers("/api/profile/**").permitAll()
+            .requestMatchers("/api/notifications/**").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/birds/**", "/api/bird-orders/**", "/api/bird-families/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/birds/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.PUT, "/api/birds/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.DELETE, "/api/birds/**").hasRole("ADMIN")
+            .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/posts").hasRole("BIRDER")
+            .requestMatchers(HttpMethod.DELETE, "/api/posts/**").authenticated()
+            // .requestMatchers(HttpMethod.GET, "/api/posts/*/comments").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/posts/*/comments").authenticated()
+            .requestMatchers(HttpMethod.DELETE, "/api/posts/*/comments/*").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/posts/*/comments/*/like").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
+            .anyRequest().authenticated()
+        )
             .exceptionHandling(ex -> ex
-    .defaultAuthenticationEntryPointFor(
-        (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"),
-        request -> request.getRequestURI().startsWith("/api")
-    )
-)
+                .defaultAuthenticationEntryPointFor(
+                    (request, response, authException) -> response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized"),
+                    request -> request.getRequestURI().startsWith("/api")
+                )
+            )
             .oauth2Login(oauth -> oauth
                 .successHandler(oAuth2LoginSuccessHandler)
             )

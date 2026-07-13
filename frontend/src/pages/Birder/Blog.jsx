@@ -313,7 +313,7 @@ const Blog = () => {
 
             {/* Blog Content */}
             <div className="p-4" style={{ backgroundColor: "var(--bg-primary)" }}>
-              <Post />
+              <Post userId={userData.userId} />
             </div>
           </>
         )}

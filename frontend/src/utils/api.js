@@ -88,3 +88,122 @@ export async function getBirdFamilies() {
   if (!res.ok) throw new Error("Failed to fetch bird families");
   return res.json(); // array of { family, category }
 }
+
+// utils/api.js
+export const createPost = async (postPayload, imageFiles) => {
+  const formData = new FormData();
+
+  // The structured JSON part — must be sent as a Blob with type application/json
+  // so Spring's @RequestPart binds it to CreatePostRequest instead of treating it as a plain string
+  formData.append(
+    'post',
+    new Blob([JSON.stringify(postPayload)], { type: 'application/json' })
+  );
+
+  // The files — one entry per photo, same order as postPayload.photos
+  imageFiles.forEach((file) => {
+    formData.append('images', file);
+  });
+
+  const res = await fetch(`${API_BASE_URL}/posts`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(),
+      // Do NOT set Content-Type — the browser sets the multipart boundary for you
+    },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    throw new Error(errorText || 'Failed to create post');
+  }
+
+  return res.json();
+};
+
+//get bird photos for gallery
+export async function getBirdPhotos(birdId, featuredOnly = false) {
+  const res = await fetch(`${API_BASE_URL}/birds/${birdId}/photos?featuredOnly=${featuredOnly}`);
+  if (!res.ok) throw new Error("Failed to fetch bird photos");
+  return res.json();
+}
+
+// admin: mark/unmark a photo as featured
+export async function setPhotoFeatured(photoId, featured) {
+  const res = await fetch(`${API_BASE_URL}/posts/photos/${photoId}/featured?featured=${featured}`, {
+    method: 'PUT',
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to update featured status");
+}
+
+// feed: fetch a page of posts
+export async function getFeed(page = 0, size = 10) {
+  const res = await fetch(`${API_BASE_URL}/posts?page=${page}&size=${size}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch feed");
+  return res.json();
+}
+
+// posts by a specific user
+export async function getPostsByUser(userId, page = 0, size = 10) {
+  const res = await fetch(`${API_BASE_URL}/posts/user/${userId}?page=${page}&size=${size}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch user's posts");
+  return res.json();
+}
+
+export async function deletePost(postId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete post");
+}
+
+export async function togglePostLike(postId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}/like`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to toggle like");
+  return res.json(); // boolean: true = now liked
+}
+
+export async function getComments(postId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}/comments`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch comments");
+  return res.json();
+}
+
+export async function addComment(postId, content, parentCommentId = null) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}/comments`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ content, parentCommentId }),
+  });
+  if (!res.ok) throw new Error("Failed to add comment");
+  return res.json(); // new comment id
+}
+
+export async function toggleCommentLike(postId, commentId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}/like`, {
+    method: "POST",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to toggle comment like");
+  return res.json(); // boolean: true = now liked
+}
+
+export async function deleteComment(postId, commentId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}/comments/${commentId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete comment");
+}

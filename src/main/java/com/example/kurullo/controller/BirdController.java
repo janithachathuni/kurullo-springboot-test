@@ -3,11 +3,15 @@ package com.example.kurullo.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.kurullo.dto.BirdPhotoResponse;
 import com.example.kurullo.model.Bird;
+import com.example.kurullo.model.PostPhoto;
+import com.example.kurullo.repository.PostPhotoRepository;
 import com.example.kurullo.service.BirdService;
 
 import lombok.RequiredArgsConstructor;
@@ -115,4 +119,23 @@ public class BirdController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
+
+    @Autowired
+    private PostPhotoRepository postPhotoRepository;
+
+    @GetMapping("/{id}/photos")
+    public ResponseEntity<List<BirdPhotoResponse>> getBirdPhotos(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean featuredOnly
+    ) {
+        List<PostPhoto> photos = featuredOnly
+                ? postPhotoRepository.findFeaturedByBirdId(id)
+                : postPhotoRepository.findByBirdId(id);
+
+        List<BirdPhotoResponse> response = photos.stream()
+                .map(p -> new BirdPhotoResponse(p.getId(), p.getImageUrl(), p.isFeatured()))
+                .toList();
+
+        return ResponseEntity.ok(response);
+}
 }

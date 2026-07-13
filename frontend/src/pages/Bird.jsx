@@ -4,8 +4,8 @@ import Footer from '../components/Footer'
 import BirderSidebar from '../components/Sidebar'
 import BirderRightSidebar from '../components/SidebarRight'
 import { useParams, useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt, FaInfoCircle, FaGlobe, FaStickyNote, FaImages } from 'react-icons/fa'
-import { getBirdById } from '../utils/api'
+import { FaMapMarkerAlt } from 'react-icons/fa'
+import { getBirdById, getBirdPhotos } from '../utils/api'
 
 // Backend enums come back as raw names like "VERY_COMMON" / "RESIDENT" —
 // convert to display-friendly text, e.g. "Very Common".
@@ -28,7 +28,11 @@ const Bird = () => {
   const [bird, setBird] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [galleryFilter, setGalleryFilter] = useState("featured") // "featured" or "all"
+  const [galleryImages, setGalleryImages] = useState([])
+  const [galleryLoading, setGalleryLoading] = useState(true)
 
+  // Fetch bird details
   useEffect(() => {
     let isCancelled = false
 
@@ -37,6 +41,7 @@ const Bird = () => {
       setError("")
       try {
         const data = await getBirdById(id)
+        console.log("Bird data:", data)
         if (!isCancelled) {
           setBird(data)
         }
@@ -58,6 +63,36 @@ const Bird = () => {
       isCancelled = true
     }
   }, [id])
+
+  // Fetch gallery photos
+  useEffect(() => {
+    let isCancelled = false
+
+    const fetchGallery = async () => {
+      setGalleryLoading(true)
+      try {
+        const photos = await getBirdPhotos(id, galleryFilter === "featured")
+        if (!isCancelled) {
+          setGalleryImages(photos)
+        }
+      } catch (err) {
+        console.error("Failed to fetch bird gallery", err)
+        if (!isCancelled) {
+          setGalleryImages([])
+        }
+      } finally {
+        if (!isCancelled) {
+          setGalleryLoading(false)
+        }
+      }
+    }
+
+    fetchGallery()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [id, galleryFilter])
 
   const BirdDetailContent = ({ isBirder }) => {
     if (loading) {
@@ -102,8 +137,8 @@ const Bird = () => {
       ? bird.notes.filter((note) => note && note.trim() !== "")
       : []
 
-    // Mock gallery images
-    const galleryImages = Array.from({ length: 9 }, (_, i) => `https://picsum.photos/seed/bird${bird.id}${i}/400/400`)
+    // Get the habitat map URL - handle both possible field names
+    const habitatMapUrl = bird.habitat_map_url || bird.habitatMap || bird.habitatMapUrl || null
 
     return (
       <div
@@ -202,9 +237,9 @@ const Bird = () => {
                   {/* Left column - Map (1 part) */}
                   <div className="col-span-1">
                     <div className="w-full aspect-square overflow-hidden rounded-md bg-gray-200">
-                      {bird.habitatMap ? (
+                      {habitatMapUrl ? (
                         <img
-                          src={bird.habitatMap}
+                          src={habitatMapUrl}
                           alt={`${bird.primaryName} habitat map`}
                           className="w-full h-full object-cover"
                           onError={(e) => {
@@ -284,23 +319,69 @@ const Bird = () => {
 
           {/* Gallery */}
           <div className="p-4">
-            <h1 className="text-2xl font-bold mb-3 flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-               Gallery
-            </h1>
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
+                Gallery
+              </h1>
+              
+              {/* Featured/All Toggle */}
+              <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: "var(--border)" }}>
+                <button
+                  onClick={() => setGalleryFilter("featured")}
+                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                    galleryFilter === "featured" 
+                      ? "bg-[#506142] text-white" 
+                      : "bg-transparent hover:bg-gray-100"
+                  }`}
+                  style={{
+                    backgroundColor: galleryFilter === "featured" ? "var(--accent)" : "transparent",
+                    color: galleryFilter === "featured" ? "var(--accent-text)" : "var(--text-secondary)",
+                  }}
+                >
+                  Featured
+                </button>
+                <button
+                  onClick={() => setGalleryFilter("all")}
+                  className={`px-4 py-1.5 text-sm font-medium transition-colors ${
+                    galleryFilter === "all" 
+                      ? "bg-[#506142] text-white" 
+                      : "bg-transparent hover:bg-gray-100"
+                  }`}
+                  style={{
+                    backgroundColor: galleryFilter === "all" ? "var(--accent)" : "transparent",
+                    color: galleryFilter === "all" ? "var(--accent-text)" : "var(--text-secondary)",
+                    borderLeft: "1px solid var(--border)",
+                  }}
+                >
+                  All
+                </button>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-3 gap-1">
-              {galleryImages.map((src, index) => (
-                <div key={index} className="w-full aspect-square overflow-hidden bg-gray-200">
-                  <img
-                    src={src}
-                    alt={`${bird.primaryName} ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.onerror = null
-                      e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="100%25" viewBox="0 0 100%25 100%25"%3E%3Crect width="100%25" height="100%25" fill="%23e5e7eb"/%3E%3C/svg%3E'
-                    }}
-                  />
-                </div>
-              ))}
+              {galleryLoading ? (
+                <p style={{ color: "var(--text-secondary)" }} className="col-span-3 text-center py-8">
+                  Loading gallery...
+                </p>
+              ) : galleryImages.length === 0 ? (
+                <p style={{ color: "var(--text-secondary)" }} className="col-span-3 text-center py-8">
+                  No photos yet.
+                </p>
+              ) : (
+                galleryImages.map((photo) => (
+                  <div key={photo.id} className="w-full aspect-square overflow-hidden bg-gray-200">
+                    <img
+                      src={photo.imageUrl}
+                      alt={bird.primaryName}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="100%25" viewBox="0 0 100%25 100%25"%3E%3Crect width="100%25" height="100%25" fill="%23e5e7eb"/%3E%3C/svg%3E'
+                      }}
+                    />
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
