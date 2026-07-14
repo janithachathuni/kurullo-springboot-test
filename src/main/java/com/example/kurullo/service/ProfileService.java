@@ -112,6 +112,7 @@ public class ProfileService {
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
 
         Map<String, Object> result = new HashMap<>();
+        result.put("userId", user.getId());  
         result.put("username", user.getUsername());
         result.put("displayName", profile.getDisplayName());
         result.put("bio", profile.getBio());

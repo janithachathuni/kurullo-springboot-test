@@ -1,16 +1,18 @@
 package com.example.kurullo.security;
 
-import com.example.kurullo.model.User;
-import com.example.kurullo.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import com.example.kurullo.model.User;
+import com.example.kurullo.repository.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
@@ -40,6 +42,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         String token = jwtUtil.generateToken(email);
 
         response.sendRedirect("http://localhost:5173/oauth2/success?token=" + token
+                + "&userId=" + user.getId()
                 + "&role=" + user.getRole()
                 + "&isFirstLogin=" + user.isFirstLogin()
                 + "&profileCompleted=" + user.isProfileCompleted()

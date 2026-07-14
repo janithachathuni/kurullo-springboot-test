@@ -10,6 +10,7 @@ public enum NotificationType {
     CONTENT_REMOVED,
     ACCOUNT_WARNING,
     LIKE,
+    LIKE_COMMENT,
     FOLLOW,
     REPLY,
     COMMENT

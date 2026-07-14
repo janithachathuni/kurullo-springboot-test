@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { FaHeart, FaRegHeart, FaComment, FaShare, FaTrash, FaEllipsisV } from 'react-icons/fa';
 import profileimg from "../../assets/default_profile_pic.png";
-import { getFeed, togglePostLike, getComments, addComment, toggleCommentLike, deletePost } from '../../utils/api';
-
+import { getFeed, getPostsByUser, togglePostLike, getComments, addComment, toggleCommentLike, deletePost } from '../../utils/api';
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+import CreateReport from './CreateReport';
 
-const Post = ({userId}) => {
+const Post = ({ userId }) => {
+  const [currentUser, setCurrentUser] = useState(() =>
+    JSON.parse(localStorage.getItem("user") || "null")
+  );
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(JSON.parse(localStorage.getItem("user") || "null"));
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  const isOwnBlog = userId && currentUser && String(currentUser.id) === String(userId);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentsByPost, setCommentsByPost] = useState({});
@@ -18,23 +29,30 @@ const Post = ({userId}) => {
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [showDeletePopup, setShowDeletePopup] = useState(null);
   const [showMenu, setShowMenu] = useState(null);
+  const [showReport, setShowReport] = useState(false);
 
-  useEffect(() => {
-    const fetchPosts = async () => {
-      setLoading(true);
-      try {
-        const page = userId
-          ? await getPostsByUser(userId, 0, 10)
-          : await getFeed(0, 10);
-        setPosts(page.content || []);
-      } catch (err) {
-        console.error("Failed to fetch posts:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, [userId]);
+  const fetchPosts = async () => {
+  setLoading(true);
+  try {
+    const page = userId
+      ? await getPostsByUser(userId, 0, 10)
+      : await getFeed(0, 10);
+    setPosts(page.content || []);
+  } catch (err) {
+    console.error("Failed to fetch posts:", err);
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  fetchPosts();
+}, [userId]);
+
+useEffect(() => {
+  window.addEventListener('post-created', fetchPosts);
+  return () => window.removeEventListener('post-created', fetchPosts);
+}, [userId]);
 
   const formatTimestamp = (isoString) => {
     if (!isoString) return "";
@@ -172,6 +190,12 @@ const Post = ({userId}) => {
     setShowMenu(null);
   };
 
+  const handleReportComplete = () => {
+    setShowReport(false);
+    // Optionally show a success message
+    alert('Report submitted successfully. We will review it shortly.');
+  };
+
   const confirmDelete = async (postId) => {
     try {
       await deletePost(postId);
@@ -233,10 +257,10 @@ const Post = ({userId}) => {
               <button
                 onClick={() => handleReplyLike(postId, commentId, reply.id)}
                 className={`flex items-center gap-1 text-xs transition ${
-                  reply.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+                  reply.likedByCurrentUser ? "text-red-500" : "text-[var(--text-secondary)]"
                 }`}
               >
-                {reply.likedByCurrentUser ? <FaHeart size={12} /> : <FaRegHeart size={12} />}
+                {reply.likedByCurrentUser ? <FaHeart size={12} className="text-red-500" /> : <FaRegHeart size={12} />}
                 {reply.likesCount > 0 && reply.likesCount}
               </button>
               <button
@@ -296,13 +320,37 @@ const Post = ({userId}) => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-t-[var(--accent)] border-gray-200 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+ if (loading) {
+  return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-12 h-12 border-4 border-t-[var(--accent)] border-gray-200 rounded-full animate-spin"></div>
+    </div>
+  );
+}
+
+if (posts.length === 0) {
+  return (
+    <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+      {isOwnBlog ? (
+        <>
+          <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
+            You haven't posted anything yet.
+          </p>
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('request-create-post'))}
+            className="font-medium underline hover:opacity-80 transition"
+            style={{ color: "var(--accent)" }}
+          >
+            Make your first post!
+          </button>
+        </>
+      ) : (
+        <p style={{ color: "var(--text-secondary)" }}>No posts yet.</p>
+        
+      )}
+    </div>
+  );
+}
 
   return (
     <div className="space-y-4">
@@ -382,26 +430,33 @@ const Post = ({userId}) => {
                         Block User
                       </button>
                       <button
-                        onClick={() => setShowMenu(null)}
+                        onClick={() => setShowReport(true)}
                         className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
                         style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
                       >
                         Report Post
                       </button>
+                      {showReport && (
+                        <CreateReport
+                          postId={post.id}
+                          onComplete={handleReportComplete}
+                          onClose={() => setShowReport(false)}
+                        />
+                      )}
                     </div>
                   </>
                 )}
               </div>
             </div>
 
-            {/* Image Carousel */}
+            {/* Image Carousel - Full width, auto height */}
             {totalImages > 0 && (
-              <div className="relative" style={{ backgroundColor: "var(--bg-secondary)" }}>
+              <div className="relative w-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
                 <div className="relative w-full">
                   <img
                     src={post.photos[imageIndex].imageUrl}
                     alt={`Post image ${imageIndex + 1}`}
-                    className="w-full h-auto object-contain max-h-[400px]"
+                    className="w-full h-auto object-contain"
                   />
                   {totalImages > 1 && (
                     <>
@@ -477,12 +532,19 @@ const Post = ({userId}) => {
 
               <button
                 onClick={() => handleLike(post.id)}
-                className={`flex items-center space-x-1 transition ${
-                  post.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
-                }`}
+                className="flex items-center space-x-1 transition"
               >
-                {post.likedByCurrentUser ? <FaHeart className="w-5 h-5" /> : <FaRegHeart className="w-5 h-5" />}
-                <span>{post.likesCount}</span>
+                {post.likedByCurrentUser ? (
+                  <FaHeart className="w-5 h-5 text-red-500" />
+                ) : (
+                  <FaRegHeart className="w-5 h-5" style={{ color: "var(--text-secondary)" }} />
+                )}
+                <span style={{ 
+                  color: post.likedByCurrentUser ? "#ef4444" : "var(--text-secondary)",
+                  fontWeight: post.likedByCurrentUser ? "bold" : "normal"
+                }}>
+                  {post.likesCount}
+                </span>
               </button>
 
               {isOwnPost && (
@@ -556,10 +618,14 @@ const Post = ({userId}) => {
                         <button
                           onClick={() => handleCommentLike(post.id, comment.id)}
                           className={`text-xs transition ${
-                            comment.likedByCurrentUser ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+                            comment.likedByCurrentUser ? "text-red-500" : "text-[var(--text-secondary)]"
                           }`}
                         >
-                          {comment.likedByCurrentUser ? <FaHeart className="inline w-3 h-3" /> : <FaRegHeart className="inline w-3 h-3" />}
+                          {comment.likedByCurrentUser ? (
+                            <FaHeart className="inline w-3 h-3 text-red-500" />
+                          ) : (
+                            <FaRegHeart className="inline w-3 h-3" />
+                          )}
                           {comment.likesCount > 0 && ` ${comment.likesCount}`}
                         </button>
                       </div>

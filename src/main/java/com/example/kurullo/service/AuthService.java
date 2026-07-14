@@ -35,11 +35,12 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getEmail());
 
         return new LoginResponse(
-                token,
-                user.getRole().name(),
-                user.isFirstLogin(),
-                user.isProfileCompleted(),
-                user.getUsername()
+            user.getId(),
+            token, // must be String
+            user.getRole().name(),
+            user.isFirstLogin(),
+            user.isProfileCompleted(),
+            user.getUsername()
         );
     }
 

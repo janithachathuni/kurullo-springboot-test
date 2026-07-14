@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight/SidebarShell';
+import AdminSidebar from '../../components/AdminSidebar';
 import bannerimg from '../../Assets/bannerimg.png';
 import default_profile_pic from '../../Assets/default_profile_pic.png';
 import Post from "./Post";
@@ -18,6 +19,15 @@ const Blog = () => {
   const [isBlocked, setIsBlocked] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const navigate = useNavigate();
+
+  const rawUser = localStorage.getItem('user');
+  const currentUser = rawUser ? JSON.parse(rawUser) : null;
+  const isLoggedIn = !!currentUser;
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const isOwnProfile = currentUser?.username === username;
+
+  const showBirderSidebars = isLoggedIn && !isAdmin;
+  const hasLeftSidebar = showBirderSidebars || isAdmin;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,9 +53,6 @@ const Blog = () => {
     };
     if (username) fetchProfile();
   }, [username]);
-
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
-  const isOwnProfile = currentUser.username === username;
 
   const authHeaders = () => {
     const token = localStorage.getItem('token');
@@ -92,7 +99,6 @@ const Blog = () => {
       if (!res.ok) throw new Error(data.error || 'Something went wrong');
 
       setIsBlocked(!isBlocked);
-      // blocking also removes any follow relationship server-side
       if (!isBlocked && isFollowing) {
         setIsFollowing(false);
         setUserData((prev) => ({ ...prev, followers: prev.followers - 1 }));
@@ -105,7 +111,6 @@ const Blog = () => {
     }
   };
 
-  // Skeleton loading component
   const SkeletonLoading = () => (
     <>
       <div
@@ -116,7 +121,6 @@ const Blog = () => {
           borderBottomColor: "var(--border)",
         }}
       >
-        {/* Banner skeleton */}
         <div className="relative w-full overflow-hidden" style={{ paddingTop: "33.333%" }}>
           <div className="absolute inset-0 w-full h-full animate-pulse" style={{ backgroundColor: "var(--bg-secondary)" }}>
             <img
@@ -125,7 +129,6 @@ const Blog = () => {
               className="w-full h-full object-cover opacity-50"
             />
           </div>
-          {/* Edit Profile button skeleton */}
           <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
             <div className="px-4 py-1.5 rounded-full bg-[var(--bg-secondary)] animate-pulse" style={{ width: "100px", height: "36px" }}></div>
           </div>
@@ -133,7 +136,6 @@ const Blog = () => {
 
         <div className="px-6 py-4">
           <div className="flex items-start gap-6">
-            {/* Avatar skeleton */}
             <div className="relative -mt-10 shrink-0">
               <div
                 className="w-28 h-28 rounded-2xl border-4 overflow-hidden"
@@ -149,14 +151,12 @@ const Blog = () => {
               />
             </div>
 
-            {/* Name + bio skeleton */}
             <div className="flex-1 pt-2">
               <div className="h-8 w-48 rounded animate-pulse mb-2" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
               <div className="h-4 w-64 rounded animate-pulse" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
             </div>
           </div>
 
-          {/* Stats skeleton */}
           <div className="flex items-center gap-6 mt-4 sm:ml-[calc(7rem+1.5rem)]">
             <div className="h-5 w-24 rounded animate-pulse" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
             <div className="h-5 w-24 rounded animate-pulse" style={{ backgroundColor: "var(--bg-secondary)" }}></div>
@@ -168,8 +168,10 @@ const Blog = () => {
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
-      <Sidebar />
-      <div className="flex-1 ml-0 md:ml-16 lg:ml-[20%] pb-20 md:pb-4">
+      {showBirderSidebars && <Sidebar />}
+      {isAdmin && <AdminSidebar />}
+
+      <div className={`flex-1 pb-20 md:pb-4 ${hasLeftSidebar ? 'ml-0 md:ml-16 lg:ml-[20%]' : ''}`}>
         {loading ? (
           <SkeletonLoading />
         ) : error ? (
@@ -177,7 +179,6 @@ const Blog = () => {
             <p style={{ color: "var(--text-secondary)" }}>{error}</p>
           </div>
         ) : (
-          // Normal content
           <>
             <div
               className="relative"
@@ -187,7 +188,6 @@ const Blog = () => {
                 borderBottomColor: "var(--border)",
               }}
             >
-              {/* Banner — 3:1 aspect ratio via padding trick */}
               <div className="relative w-full overflow-hidden" style={{ paddingTop: "33.333%" }}>
                 <img
                   src={userData.bannerPic || bannerimg}
@@ -195,7 +195,6 @@ const Blog = () => {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
 
-                {/* Action button — top right of banner */}
                 <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
                   {isOwnProfile ? (
                     <button
@@ -205,7 +204,7 @@ const Blog = () => {
                     >
                       Edit Profile
                     </button>
-                  ) : (
+                  ) : isLoggedIn && !isAdmin ? (
                     <>
                       <button
                         onClick={handleFollowToggle}
@@ -254,13 +253,12 @@ const Blog = () => {
                         )}
                       </div>
                     </>
-                  )}
+                  ) : null}
                 </div>
               </div>
 
               <div className="px-6 py-4">
                 <div className="flex items-start gap-6">
-                  {/* Avatar */}
                   <div className="relative -mt-10 shrink-0">
                     <div
                       className="w-28 h-28 rounded-2xl border-4 overflow-hidden transform rotate-3 transition-transform hover:rotate-0 duration-500"
@@ -274,7 +272,6 @@ const Blog = () => {
                     />
                   </div>
 
-                  {/* Name + bio */}
                   <div className="flex-1 pt-2">
                     <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--accent)" }}>
                       {userData.displayName || userData.username}
@@ -293,7 +290,6 @@ const Blog = () => {
                   </div>
                 </div>
 
-                {/* Stats */}
                 <div className="flex items-center gap-6 mt-4 sm:ml-[calc(7rem+1.5rem)]">
                   <div>
                     <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -311,16 +307,15 @@ const Blog = () => {
               </div>
             </div>
 
-            {/* Blog Content */}
-            <div className="p-4" style={{ backgroundColor: "var(--bg-primary)" }}>
+            <div className="p-4 -mb-4" style={{ backgroundColor: "var(--bg-secondary)" }}>
               <Post userId={userData.userId} />
             </div>
           </>
         )}
       </div>
-      <SidebarRight />
 
-      {/* Edit Profile Popup */}
+      {showBirderSidebars && <SidebarRight />}
+
       <EditProfile
         isOpen={showEditProfile}
         onClose={() => setShowEditProfile(false)}

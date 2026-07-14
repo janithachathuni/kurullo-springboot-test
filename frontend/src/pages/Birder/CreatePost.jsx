@@ -437,10 +437,9 @@ const CreatePost = ({ onComplete }) => {
 
     const imageFiles = photos.map((photo) => photo.file);
 
-    await createPost(postPayload, imageFiles);
+    const createdPost = await createPost(postPayload, imageFiles);
 
-    alert("Post created successfully!");
-    onComplete?.();
+    onComplete?.(createdPost);
   } catch (error) {
     console.error("Failed to create post:", error);
     alert(error.message || "Something went wrong while creating your post.");
