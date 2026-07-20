@@ -104,6 +104,10 @@ const BirdList = () => {
     navigate(`/bird/${birdId}`);
   };
 
+  const handleSetFeatured = (birdId) => {
+    navigate(`/admin/featured/${birdId}`);
+  };
+
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--bg-primary)' }}>
       {/* Sidebar */}
@@ -227,19 +231,19 @@ const BirdList = () => {
                   <th className="px-6 py-4 text-left font-semibold">Order</th>
                   <th className="px-6 py-4 text-left font-semibold">Family</th>
                   <th className="px-6 py-4 text-center font-semibold w-24">Actions</th>
-                  <th className="px-6 py-4 text-center font-semibold w-24">Featured Birds</th>
+                  <th className="px-6 py-4 text-center font-semibold w-36">Set Featured Birds</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-12 text-gray-500">
+                    <td colSpan="7" className="text-center py-12 text-gray-500">
                       Loading birds...
                     </td>
                   </tr>
                 ) : filteredBirds.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="text-center py-12 text-gray-500">
+                    <td colSpan="7" className="text-center py-12 text-gray-500">
                       <div className="flex flex-col items-center">
                         <div className="text-gray-400 mb-4">
                           <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -303,6 +307,16 @@ const BirdList = () => {
                             title="Delete Bird"
                           >
                             <FaTrash className="text-lg" />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex justify-center">
+                          <button
+                            onClick={() => handleSetFeatured(bird._id)}
+                            className="px-4 py-2 bg-[#506142] text-white hover:bg-[#3f4d34] rounded-lg transition-all duration-200 font-medium text-sm"
+                          >
+                            Curate gallery
                           </button>
                         </div>
                       </td>

@@ -207,3 +207,37 @@ export async function deleteComment(postId, commentId) {
   });
   if (!res.ok) throw new Error("Failed to delete comment");
 }
+
+// In api.js - add this function
+export async function getAllBirdPhotos() {
+  // Fetch posts that have photos
+  const res = await fetch(`${API_BASE_URL}/posts?page=0&size=50`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch photos");
+  
+  const data = await res.json();
+  
+  // Extract photos from posts
+  const posts = data.content || data || [];
+  const allPhotos = [];
+  
+  posts.forEach(post => {
+    if (post.photos && post.photos.length > 0) {
+      post.photos.forEach(photo => {
+        allPhotos.push({
+          id: photo.id || `${post.id}-${Date.now()}`,
+          imageUrl: photo.imageUrl || photo.url,
+          birdName: post.birdName || post.primaryName || 'Bird',
+          postId: post.id,
+          createdAt: photo.createdAt || post.createdAt || new Date().toISOString()
+        });
+      });
+    }
+  });
+  
+  // Sort by newest first
+  return allPhotos.sort((a, b) => 
+    new Date(b.createdAt) - new Date(a.createdAt)
+  );
+}

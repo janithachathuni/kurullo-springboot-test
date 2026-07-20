@@ -9,15 +9,7 @@ import birdlogo from "../assets/birdlogo.png";
 import birdlogo2 from "../assets/birdlogo2.png";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
-
-const galleryPhotos = [
-  "https://source.unsplash.com/400x300/?bird,1",
-  "https://source.unsplash.com/400x300/?bird,2",
-  "https://source.unsplash.com/400x300/?bird,3",
-  "https://source.unsplash.com/400x300/?bird,4",
-  "https://source.unsplash.com/400x300/?bird,5",
-  "https://source.unsplash.com/400x300/?bird,6",
-];
+import { getAllBirdPhotos } from "../utils/api";
 
 const infoCards = [
   { id: 1, title: "Discover Birds", description: "Explore a comprehensive database of bird species in Sri Lanka." },
@@ -41,17 +33,18 @@ const heroImages = [
 const Home = () => {
   const [showNavbar, setShowNavbar] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(null);
+  const [recentPhotos, setRecentPhotos] = useState([]);
+  const [galleryLoading, setGalleryLoading] = useState(true);
 
-    // Add this near your other useState hooks
-const [isDark, setIsDark] = useState(document.documentElement.getAttribute('data-theme') === 'dark');
+  const [isDark, setIsDark] = useState(document.documentElement.getAttribute('data-theme') === 'dark');
 
-useEffect(() => {
-  const observer = new MutationObserver(() => {
-    setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
-  });
-  observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-  return () => observer.disconnect();
-}, []);
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.getAttribute('data-theme') === 'dark');
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setShowNavbar(window.scrollY > 50);
@@ -77,11 +70,35 @@ useEffect(() => {
     return () => observer.disconnect();
   }, []);
 
+  // Fetch recent photos
+  useEffect(() => {
+    const fetchRecentPhotos = async () => {
+      setGalleryLoading(true);
+      try {
+        const photos = await getAllBirdPhotos();
+        // Sort by date (newest first) and take the first 10
+        const sortedPhotos = photos
+          .sort((a, b) => {
+            const dateA = new Date(a.createdAt || a.date || 0);
+            const dateB = new Date(b.createdAt || b.date || 0);
+            return dateB - dateA;
+          })
+          .slice(0, 10);
+        setRecentPhotos(sortedPhotos);
+      } catch (err) {
+        console.error("Failed to fetch recent photos:", err);
+        setRecentPhotos([]);
+      } finally {
+        setGalleryLoading(false);
+      }
+    };
+
+    fetchRecentPhotos();
+  }, []);
+
   const handleImageClick = (index) => {
     setActiveImageIndex(activeImageIndex === index ? null : index);
   };
-
-
 
   return (
     <div className="flex flex-col min-h-screen" style={{ backgroundColor: "var(--bg-primary)", color: "var(--text-primary)" }}>
@@ -191,22 +208,58 @@ useEffect(() => {
         </div>
       </section>
 
-      {/* Gallery */}
+      {/* Gallery - Recent Bird Photos */}
       <section className="py-20 px-6 md:px-12" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <h2 className="text-3xl font-bold mb-10 text-center tracking-wide" style={{ color: "var(--text-primary)" }}>
-          Explore Bird Gallery
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {galleryPhotos.map((src, idx) => (
-            <div key={idx} className="overflow-hidden rounded-2xl transition transform hover:scale-105">
-              <img src={src} alt={`Bird ${idx + 1}`} className="object-cover w-full h-56" />
-            </div>
-          ))}
+        <div className="flex justify-between items-center mb-10">
+          <h2 className="text-3xl font-bold tracking-wide" style={{ color: "var(--text-primary)" }}>
+            Explore Bird Gallery
+          </h2>
+          <Link
+            to="/birdlist"
+            className="text-sm font-medium hover:underline"
+            style={{ color: "var(--accent)" }}
+          >
+            View all birds →
+          </Link>
         </div>
+        
+        {galleryLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <div className="w-12 h-12 border-4 border-t-[#506142] border-gray-200 rounded-full animate-spin"></div>
+          </div>
+        ) : recentPhotos.length === 0 ? (
+          <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
+            <p>No photos available yet. Be the first to upload!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {recentPhotos.map((photo, idx) => (
+              <div 
+                key={photo.id || idx} 
+                className="overflow-hidden transition transform hover:scale-105 hover:shadow-lg"
+                style={{ backgroundColor: "var(--bg-card)" }}
+              >
+                <img 
+                  src={photo.imageUrl} 
+                  alt={`Bird photo ${idx + 1}`} 
+                  className="object-cover w-full aspect-square"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="100%25" viewBox="0 0 100%25 100%25"%3E%3Crect width="100%25" height="100%25" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="20" font-family="sans-serif"%3E📸%3C/text%3E%3C/svg%3E';
+                  }}
+                />
+                {photo.birdName && (
+                  <p className="text-xs text-center py-1 truncate px-1" style={{ color: "var(--text-secondary)" }}>
+                    {photo.birdName}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       <Footer />
-
     </div>
   );
 };

@@ -44,6 +44,7 @@ import AdminAddBird from "../pages/Admin/AddBird";
 import AdminEditBird from "../pages/Admin/EditBird";
 import AdminReports from "../pages/Admin/Reports";
 import AdminEventsArticlesManage from "../pages/Admin/EventsArticlesManage";
+import AdminFeaturedBirds from "../pages/Admin/FeaturedBirds";
 
 const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -87,7 +88,7 @@ const router = createBrowserRouter([
   { path: "/admin/edit-bird/:id", element: <AdminEditBird/>},
   { path: "/admin/reports", element: <AdminReports/>},
   { path: "/admin/events-articles", element: <AdminEventsArticlesManage/>},
-
+  { path: "/admin/featured/:id", element: <AdminFeaturedBirds/>},
 
 
   { path: "*", element: <Error /> },

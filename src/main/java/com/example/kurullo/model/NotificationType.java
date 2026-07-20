@@ -7,6 +7,7 @@ public enum NotificationType {
     ARTICLE_PUBLISHED,
     REPORT_RESPONSE,
     REPORT_RECEIVED,
+    PHOTO_FEATURED,
     CONTENT_REMOVED,
     ACCOUNT_WARNING,
     LIKE,

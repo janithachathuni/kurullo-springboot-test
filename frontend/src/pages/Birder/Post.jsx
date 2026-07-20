@@ -430,6 +430,13 @@ if (posts.length === 0) {
                         Block User
                       </button>
                       <button
+                        onClick={() => setShowMenu(null)}
+                        className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
+                        style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
+                      >
+                        Boost photo to admin
+                      </button>
+                      <button
                         onClick={() => setShowReport(true)}
                         className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
                         style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
