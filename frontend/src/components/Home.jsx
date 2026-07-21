@@ -111,40 +111,42 @@ const Home = () => {
       )}
 
       {/* Hero Section */}
-      <div className="relative h-screen flex">
-        <div className="w-2/5 h-full flex items-center justify-center px-10 -mt-2">
-          <div className="max-w-lg">
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl mb-7 md:text-[5rem] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+      <div className="relative h-screen flex items-center justify-center">
+        
+        {/* Left side - Content (full width on mobile, half on desktop) */}
+        <div className="w-full md:w-2/5 h-full flex items-center justify-center px-6 md:px-10">
+          <div className="max-w-lg w-full text-center md:text-left">
+            <div className="flex items-center justify-center md:justify-start gap-3">
+              <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Kurullo
               </h1>
-              <img src={isDark ? birdlogo2 : birdlogo} className="h-12 -ml-10 -mt-25" alt="Kurullo logo" />
+              <img src={isDark ? birdlogo2 : birdlogo} className="h-12 sm:h-14 md:h-12 -ml-6 sm:-ml-10 -mt-4 md:-mt-25" alt="Kurullo logo" />
             </div>
-            <p className="mb-15 md:text-[16px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+            <p className="mb-8 md:mb-15 text-base sm:text-lg md:text-[16px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               Join a vibrant community of bird enthusiasts. Share your sightings, learn from others, and contribute to bird conservation.
             </p>
 
-            <div className="flex flex-col md:flex-row justify-start gap-4 mb-8">
+            <div className="flex flex-col sm:flex-row justify-center md:justify-start gap-4 mb-8">
               <a href="https://apps.apple.com" target="_blank" rel="noopener noreferrer" className="transform hover:scale-105 transition-transform">
-                <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-12" />
+                <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="App Store" className="h-12 sm:h-14 md:h-12" />
               </a>
               <a href="https://play.google.com" target="_blank" rel="noopener noreferrer" className="transform hover:scale-105 transition-transform">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-12" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-12 sm:h-14 md:h-12" />
               </a>
             </div>
 
             <Link
               to="/login"
               style={{ backgroundColor: "var(--accent)", color: "var(--accent-text)" }}
-              className="inline-block px-8 py-4 w-80 text-center rounded-full font-semibold tracking-wide transition-all duration-300 transform hover:-translate-y-1 hover:opacity-90"
+              className="inline-block px-8 py-4 w-full sm:w-80 text-center rounded-full font-semibold tracking-wide transition-all duration-300 transform hover:-translate-y-1 hover:opacity-90"
             >
               Get Started
             </Link>
           </div>
         </div>
 
-        {/* Right half - hero images */}
-        <div className="w-3/5 h-full relative overflow-visible -mt-6" style={{ backgroundColor: "var(--bg-primary)" }}>
+        {/* Right half - hero images (hidden on mobile and tablet) */}
+        <div className="hidden md:block w-3/5 h-full relative overflow-visible -mt-6" style={{ backgroundColor: "var(--bg-primary)" }}>
           {heroImages.map((image, index) => {
             let zIndexValue = image.zIndex;
             if (activeImageIndex === index) zIndexValue = 999;
@@ -154,12 +156,21 @@ const Home = () => {
               <div
                 key={index}
                 className="absolute cursor-pointer transition-all duration-500 group"
-                style={{ top: image.top, left: image.left, transform: `rotate(${image.rotation})`, zIndex: zIndexValue }}
+                style={{ 
+                  top: image.top, 
+                  left: image.left, 
+                  transform: `rotate(${image.rotation})`, 
+                  zIndex: zIndexValue
+                }}
                 onClick={() => handleImageClick(index)}
               >
                 <div
                   className="overflow-hidden transition-all duration-500 group-hover:rotate-0 group-hover:scale-120 group-hover:z-[999]"
-                  style={{ width: "350px", height: "250px", border: "1px solid var(--border)" }}
+                  style={{ 
+                    width: "350px", 
+                    height: "250px", 
+                    border: "1px solid var(--border)" 
+                  }}
                 >
                   <img src={image.src} alt="Bird" className="w-full h-full object-cover transition-transform duration-500" />
                 </div>
@@ -171,7 +182,7 @@ const Home = () => {
 
       {/* Info Cards */}
       <section className="py-20 px-6 mt-10 md:px-12" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           {infoCards.map((card) => (
             <div
               key={card.id}
@@ -190,7 +201,7 @@ const Home = () => {
         <h2 className="text-3xl font-bold mb-10 text-center tracking-wide" style={{ color: "var(--accent)" }}>
           Latest Articles
         </h2>
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {articles.map((article) => (
             <div
               key={article.id}
@@ -210,8 +221,8 @@ const Home = () => {
 
       {/* Gallery - Recent Bird Photos */}
       <section className="py-20 px-6 md:px-12" style={{ backgroundColor: "var(--bg-secondary)" }}>
-        <div className="flex justify-between items-center mb-10">
-          <h2 className="text-3xl font-bold tracking-wide" style={{ color: "var(--text-primary)" }}>
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-wide text-center sm:text-left" style={{ color: "var(--text-primary)" }}>
             Explore Bird Gallery
           </h2>
           <Link
@@ -232,7 +243,7 @@ const Home = () => {
             <p>No photos available yet. Be the first to upload!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1">
             {recentPhotos.map((photo, idx) => (
               <div 
                 key={photo.id || idx} 

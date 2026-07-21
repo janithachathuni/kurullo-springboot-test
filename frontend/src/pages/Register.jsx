@@ -62,14 +62,14 @@ const Register = () => {
         </svg>
       </button>
 
-      {/* Image Column - Background */}
+      {/* Image Column - Hidden on mobile/tablet */}
       <div
-        className="w-1/2 bg-cover bg-center border-r border-black"
+        className="hidden lg:block w-1/2 bg-cover bg-center border-r border-black"
         style={{ backgroundImage: `url(${signupImage1})` }}
       ></div>
 
-      {/* Form Column */}
-      <div className="w-1/2 flex items-center justify-center p-10 bg-[#fffdef]">
+      {/* Form Column - Full width on mobile/tablet, half on desktop */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-10 bg-[#fffdef]">
         <form className="w-full max-w-md space-y-4" onSubmit={handleRegister}>
           <h1 className="text-3xl mb-10 text-left">Sign up for Kurullo.lk</h1>
 

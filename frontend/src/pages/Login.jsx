@@ -71,8 +71,8 @@ const Login = () => {
         </svg>
       </button>
 
-      {/* Image Column - Background */}
-      <div className="relative w-1/2 border-r border-black group">
+      {/* Image Column - Hidden on mobile/tablet */}
+      <div className="hidden lg:block relative w-1/2 border-r border-black group">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${signupImage1})` }}
@@ -109,8 +109,8 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Form Column */}
-      <div className="w-1/2 flex items-center justify-center p-10 bg-[#fffdef]">
+      {/* Form Column - Full width on mobile/tablet, half on desktop */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-10 bg-[#fffdef]">
         <form
           className="w-full max-w-md space-y-4"
           onSubmit={handleLogin}
