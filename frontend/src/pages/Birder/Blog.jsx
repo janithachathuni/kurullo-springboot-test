@@ -34,8 +34,8 @@ const Blog = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        const res = await fetch(`http://localhost:8080/api/profile/${username}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
+const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) {
           navigate('/404', { replace: true });
@@ -67,7 +67,7 @@ const Blog = () => {
     setActionLoading(true);
     const endpoint = isFollowing ? 'unfollow' : 'follow';
     try {
-      const res = await fetch(`http://localhost:8080/api/profile/${username}/${endpoint}`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}/${endpoint}`, {
         method: 'POST',
         headers: authHeaders(),
       });
@@ -91,8 +91,7 @@ const Blog = () => {
     setActionLoading(true);
     const endpoint = isBlocked ? 'unblock' : 'block';
     try {
-      const res = await fetch(`http://localhost:8080/api/profile/${username}/${endpoint}`, {
-        method: 'POST',
+const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}/${endpoint}`, {        method: 'POST',
         headers: authHeaders(),
       });
       const data = await res.json();

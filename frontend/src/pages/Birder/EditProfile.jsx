@@ -70,8 +70,8 @@ const EditProfile = ({ isOpen, onClose, userData, onProfileUpdated }) => {
       if (formData.profilePic) fd.append('profilePic', formData.profilePic);
       if (formData.bannerPic) fd.append('bannerPic', formData.bannerPic);
 
-      const res = await fetch('http://localhost:8080/api/profile/update', {
-        method: 'PUT',
+const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/update`, {
+          method: 'PUT',
         headers: { 'Authorization': `Bearer ${token}` },
         body: fd,
       });

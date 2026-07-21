@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme, fonts } from '../context/ThemeContext'
 
-const API_BASE = 'http://10.249.117.165:8080' // ← replace with your machine's local IP (not localhost)
+const API_BASE = 'http://10.27.238.165:8080' // ← replace with your machine's local IP (not localhost)
 
 export default function LoginScreen({ navigation }) {
   const { theme } = useTheme()

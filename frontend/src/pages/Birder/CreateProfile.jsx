@@ -59,8 +59,8 @@ const CreateProfile = ({ onComplete }) => {
     if (formData.profilePic) fd.append('profilePic', formData.profilePic);
     if (formData.bannerPic)  fd.append('bannerPic',  formData.bannerPic);
 
-    const res = await fetch('http://localhost:8080/api/profile/complete', {
-      method: 'POST',
+const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/complete`, {
+        method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` },
       body: fd,
     });

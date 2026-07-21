@@ -59,7 +59,7 @@ const Notifications = () => {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const res = await fetch('http://localhost:8080/api/notifications', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications`, {
           headers: authHeaders(),
         });
         const data = await res.json();
@@ -78,7 +78,7 @@ const Notifications = () => {
     const prevState = notifications;
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     try {
-      const res = await fetch('http://localhost:8080/api/notifications/read-all', {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/read-all`, {
         method: 'POST',
         headers: authHeaders(),
       });
@@ -95,7 +95,7 @@ const Notifications = () => {
 
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     try {
-      const res = await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/${id}/read`, {
         method: 'POST',
         headers: authHeaders(),
       });

@@ -24,7 +24,7 @@ const Sidebar = () => {
     if (!token) return;
     const fetchUnreadCount = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/notifications/unread-count', {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/notifications/unread-count`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) return;
