@@ -2,6 +2,7 @@ package com.example.kurullo.security;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -21,6 +22,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
+    @Value("${app.frontend-url}")
+    private String frontendUrl;
+
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
@@ -34,14 +38,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         if (isNew) {
             // Redirect to complete registration — don't create user yet
-            response.sendRedirect("http://localhost:5173/complete-registration?email=" + email + "&googleId=" + googleId);
+            response.sendRedirect(frontendUrl + "/complete-registration?email=" + email + "&googleId=" + googleId);
             return;
         }
 
         User user = userRepository.findByEmail(email).orElseThrow();
         String token = jwtUtil.generateToken(email);
 
-        response.sendRedirect("http://localhost:5173/oauth2/success?token=" + token
+        response.sendRedirect(frontendUrl + "/oauth2/success?token=" + token
                 + "&userId=" + user.getId()
                 + "&role=" + user.getRole()
                 + "&isFirstLogin=" + user.isFirstLogin()
