@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import AdminSidebar from '../../components/AdminSidebar';
-import bannerimg from '../../Assets/bannerimg.png';
-import default_profile_pic from '../../Assets/default_profile_pic.png';
+import bannerimg from '../../assets/bannerimg.png';
+import default_profile_pic from '../../assets/default_profile_pic.png';
 import Post from "./Post";
 import EditProfile from './EditProfile';
 

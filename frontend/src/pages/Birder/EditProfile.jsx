@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaCamera, FaTimes } from "react-icons/fa";
-import bannerimg from "../../Assets/bannerimg.png";
-import default_profile_pic from "../../Assets/default_profile_pic.png";
+import bannerimg from "../../assets/bannerimg.png";
+import default_profile_pic from "../../assets/default_profile_pic.png";
 
 const EditProfile = ({ isOpen, onClose, userData, onProfileUpdated }) => {
   const [formData, setFormData] = useState({
