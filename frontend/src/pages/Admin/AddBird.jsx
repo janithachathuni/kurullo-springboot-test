@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import UserSidebar from "../../Components/AdminSidebar";
+import UserSidebar from "../../components/AdminSidebar";
 import { FaPlus, FaTimes, FaSave, FaArrowLeft, FaImage } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { createBird, getBirdOrders, getBirdFamilies } from "../../utils/api";

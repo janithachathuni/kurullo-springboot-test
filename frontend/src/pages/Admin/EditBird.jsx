@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import AdminSidebar from "../../Components/AdminSidebar";
+import AdminSidebar from "../../components/AdminSidebar";
 import { FaTimes, FaSave, FaArrowLeft, FaPlus, FaImage } from "react-icons/fa";
 import { getBirdById, updateBird, getBirdOrders, getBirdFamilies } from "../../utils/api";
 
