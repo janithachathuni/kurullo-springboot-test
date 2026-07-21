@@ -13,32 +13,64 @@ export const fonts = {
 
 export const lightTheme = {
   dark: false,
-  bg: '#ffffff',
-  bgSecondary: '#f4f4f4',
-  bgCard: '#ebebeb',
-  border: '#dddddd',
-  text: '#0a0a0a',
-  textSecondary: '#555555',
-  textMuted: '#888888',
-  accent: '#c8f25d',
-  accentText: '#0a0a0a',
-  error: '#cc0000',
-  errorBg: '#fff0f0',
+  
+  // Background Colors
+  bg: '#ffffff',                    // --bg-primary
+  bgSecondary: '#f0f5f2',           // --bg-secondary (light green tint)
+  bgCard: '#ffffff',                // --bg-card
+  
+  // Border Colors
+  border: 'rgba(209, 213, 219, 0.7)', // --border
+  
+  // Text Colors
+  text: '#111111',                  // --text-primary
+  textSecondary: '#4b5563',         // --text-secondary
+  textMuted: '#6b7280',
+  
+  // Accent Colors
+  accent: '#143829',                // --accent (dark green)
+  accentLight: '#1a4a35',
+  accentText: '#ffffff',            // --accent-text
+  
+  // Status Colors
+  success: '#10b981',
+  warning: '#f59e0b',
+  error: '#ef4444',
+  errorBg: '#fef2f2',
+  
+  // Shadow
+  shadow: '0 1px 3px rgba(0,0,0,0.1)',
 }
 
 export const darkTheme = {
   dark: true,
-  bg: '#0a0a0a',
-  bgSecondary: '#161616',
-  bgCard: '#1e1e1e',
-  border: '#2a2a2a',
-  text: '#f0f0f0',
-  textSecondary: '#aaaaaa',
+  
+  // Background Colors
+  bg: '#0f0f0f',                    // --bg-primary (dark)
+  bgSecondary: '#151c19',           // --bg-secondary (dark green tint)
+  bgCard: '#0b0b0b',                // --bg-card (dark)
+  
+  // Border Colors
+  border: '#2e2e2e',                // --border (dark)
+  
+  // Text Colors
+  text: '#bed0be',                  // --text-primary (dark)
+  textSecondary: '#9ca3af',         // --text-secondary (dark)
   textMuted: '#555555',
-  accent: '#c8f25d',
-  accentText: '#0a0a0a',
-  error: '#ff4444',
+  
+  // Accent Colors
+  accent: '#8fc6a3',                // --accent (dark mode)
+  accentLight: '#b4daae',
+  accentText: '#0f0f0f',            // --accent-text (dark)
+  
+  // Status Colors
+  success: '#34d399',
+  warning: '#fbbf24',
+  error: '#f87171',
   errorBg: '#2a0a0a',
+  
+  // Shadow
+  shadow: '0 1px 3px rgba(0,0,0,0.4)',
 }
 
 const ThemeContext = createContext()

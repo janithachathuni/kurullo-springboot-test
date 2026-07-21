@@ -232,11 +232,11 @@ const Home = () => {
             <p>No photos available yet. Be the first to upload!</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-1">
             {recentPhotos.map((photo, idx) => (
               <div 
                 key={photo.id || idx} 
-                className="overflow-hidden transition transform hover:scale-105 hover:shadow-lg"
+                className="overflow-hidden transition transform hover:scale-101 hover:shadow-lg"
                 style={{ backgroundColor: "var(--bg-card)" }}
               >
                 <img 
@@ -248,11 +248,7 @@ const Home = () => {
                     e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="100%25" viewBox="0 0 100%25 100%25"%3E%3Crect width="100%25" height="100%25" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="20" font-family="sans-serif"%3E📸%3C/text%3E%3C/svg%3E';
                   }}
                 />
-                {photo.birdName && (
-                  <p className="text-xs text-center py-1 truncate px-1" style={{ color: "var(--text-secondary)" }}>
-                    {photo.birdName}
-                  </p>
-                )}
+                
               </div>
             ))}
           </div>

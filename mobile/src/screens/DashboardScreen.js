@@ -1,19 +1,72 @@
 // src/screens/DashboardScreen.js
 import React from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native'
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  StyleSheet, 
+  SafeAreaView, 
+  Alert 
+} from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useTheme } from '../context/ThemeContext'
 
 export default function DashboardScreen({ navigation }) {
   const { theme } = useTheme()
   const s = styles(theme)
 
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        { 
+          text: 'Cancel', 
+          style: 'cancel' 
+        },
+        { 
+          text: 'Logout', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Clear auth data
+              await AsyncStorage.removeItem('user');
+              await AsyncStorage.removeItem('token');
+              await AsyncStorage.removeItem('role');
+              
+              // Navigate back to Auth stack (not Login directly)
+              // This resets to the Auth navigator which shows Login screen
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Auth' }] // 👈 Use 'Auth' since it's the navigator name
+              });
+            } catch (error) {
+              console.error('Logout error:', error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={s.safe}>
       <View style={s.header}>
         <Text style={s.title}>Dashboard</Text>
-        <TouchableOpacity style={s.settingsBtn} onPress={() => navigation.navigate('Settings')}>
-          <Text style={s.settingsText}>⚙</Text>
-        </TouchableOpacity>
+        <View style={s.headerRight}>
+          <TouchableOpacity 
+            style={s.iconBtn} 
+            onPress={() => navigation.navigate('Settings')}
+          >
+            <Text style={s.iconText}>⚙</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={s.iconBtn} 
+            onPress={handleLogout}
+          >
+            <Text style={s.iconText}>🚪</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={s.body}>
@@ -40,14 +93,21 @@ const styles = (theme) =>
       fontSize: 24,
       fontFamily: 'Besley_700Bold',
     },
-    settingsBtn: {
+    headerRight: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+    },
+    iconBtn: {
       backgroundColor: theme.bgSecondary,
       borderWidth: 1,
       borderColor: theme.border,
       borderRadius: 8,
       padding: 8,
     },
-    settingsText: { fontSize: 18 },
+    iconText: {
+      fontSize: 18,
+    },
     body: {
       flex: 1,
       paddingHorizontal: 24,

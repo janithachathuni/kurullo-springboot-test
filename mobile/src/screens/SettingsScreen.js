@@ -8,7 +8,7 @@ import {
   Switch,
   SafeAreaView,
 } from 'react-native'
-import { useTheme } from '../context/ThemeContext'
+import { useTheme, fonts } from '../context/ThemeContext'
 import { Heading, BodyText } from '../components/Typography'
 
 export default function SettingsScreen({ navigation }) {
@@ -20,9 +20,12 @@ export default function SettingsScreen({ navigation }) {
       {/* Header */}
       <View style={s.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={s.backBtn}>
-          <Text style={s.backText}>← Back</Text>
+          <Text style={[s.backText, { fontFamily: fonts.body }]}>← Back</Text>
         </TouchableOpacity>
+        
+        {/* Use Heading component WITHOUT overriding font */}
         <Heading style={s.title}>Settings</Heading>
+        
         <View style={s.titleAccent} />
       </View>
 
@@ -59,12 +62,15 @@ const styles = (theme) =>
       borderBottomColor: theme.border,
     },
     backBtn: { marginBottom: 16 },
-    backText: { color: theme.accent, fontSize: 14, fontWeight: '600' },
+    backText: { 
+      color: theme.accent, 
+      fontSize: 14,
+    },
     title: {
       color: theme.text,
       fontSize: 36,
-      fontWeight: '800',
       letterSpacing: -1,
+      // REMOVE fontWeight: '800' - let the Heading component handle it
     },
     titleAccent: {
       width: 40,
@@ -77,9 +83,9 @@ const styles = (theme) =>
     sectionLabel: {
       color: theme.textMuted,
       fontSize: 10,
-      fontWeight: '700',
       letterSpacing: 2,
       marginBottom: 12,
+      // REMOVE fontWeight: '700'
     },
     row: {
       flexDirection: 'row',
@@ -95,8 +101,11 @@ const styles = (theme) =>
     rowTitle: {
       color: theme.text,
       fontSize: 15,
-      fontWeight: '600',
       marginBottom: 2,
+      // REMOVE fontWeight: '600'
     },
-    rowSub: { color: theme.textMuted, fontSize: 12 },
+    rowSub: { 
+      color: theme.textMuted, 
+      fontSize: 12,
+    },
   })

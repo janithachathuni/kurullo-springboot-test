@@ -278,9 +278,9 @@ const BirdList = () => {
                       <td className="px-6 py-4">
                         <div>
                           <p className="font-semibold text-gray-800">{bird.primaryName}</p>
-                          {bird.otherNames && bird.otherNames.length > 0 && (
+                          {/* {bird.otherNames && bird.otherNames.length > 0 && (
                             <p className="text-sm text-gray-500 mt-1">Also known as: {bird.otherNames.join(', ')}</p>
-                          )}
+                          )} */}
                         </div>
                       </td>
                       <td className="px-6 py-4">

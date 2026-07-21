@@ -12,10 +12,12 @@ import {
   ScrollView,
 } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { useTheme, fonts } from '../context/ThemeContext'
 
 const API_BASE = 'http://10.249.117.165:8080' // ← replace with your machine's local IP (not localhost)
 
 export default function LoginScreen({ navigation }) {
+  const { theme } = useTheme()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -52,43 +54,44 @@ export default function LoginScreen({ navigation }) {
   }
 
   const handleGoogleLogin = () => {
-    // Opens the backend OAuth2 flow in the system browser
-    // The backend should redirect to your app's deep link on success
-    // See OAuth2SuccessScreen.js and app.json (scheme) for setup
     navigation.navigate('OAuth2Success', { url: `${API_BASE}/oauth2/authorization/google` })
   }
 
   return (
     <KeyboardAvoidingView
-      style={styles.flex}
+      style={[styles.flex, { backgroundColor: theme.bg }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.container}
+        contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.eyebrow}>WELCOME BACK</Text>
-          <Text style={styles.title}>Sign In</Text>
-          <View style={styles.titleAccent} />
+          <Text style={[styles.eyebrow, { color: theme.accent }]}>WELCOME BACK</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Sign In</Text>
+          <View style={[styles.titleAccent, { backgroundColor: theme.accent }]} />
         </View>
 
         {/* Error */}
         {error ? (
-          <View style={styles.errorBox}>
-            <Text style={styles.errorText}>{error}</Text>
+          <View style={[styles.errorBox, { backgroundColor: theme.errorBg, borderLeftColor: theme.error }]}>
+            <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
           </View>
         ) : null}
 
         {/* Form */}
         <View style={styles.form}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>EMAIL</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>EMAIL</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { 
+                backgroundColor: theme.bgSecondary, 
+                borderColor: theme.border,
+                color: theme.text 
+              }]}
               placeholder="you@example.com"
-              placeholderTextColor="#555"
+              placeholderTextColor={theme.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
               value={form.email}
@@ -97,11 +100,15 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>PASSWORD</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>PASSWORD</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { 
+                backgroundColor: theme.bgSecondary, 
+                borderColor: theme.border,
+                color: theme.text 
+              }]}
               placeholder="••••••••"
-              placeholderTextColor="#555"
+              placeholderTextColor={theme.textMuted}
               secureTextEntry
               value={form.password}
               onChangeText={(v) => handleChange('password', v)}
@@ -109,40 +116,52 @@ export default function LoginScreen({ navigation }) {
           </View>
 
           <TouchableOpacity
-            style={[styles.btn, styles.btnPrimary, loading && styles.btnDisabled]}
+            style={[
+              styles.btn, 
+              styles.btnPrimary, 
+              loading && styles.btnDisabled,
+              { backgroundColor: theme.accent }
+            ]}
             onPress={handleLogin}
             disabled={loading}
             activeOpacity={0.85}
           >
             {loading ? (
-              <ActivityIndicator color="#0a0a0a" />
+              <ActivityIndicator color={theme.accentText} />
             ) : (
-              <Text style={styles.btnPrimaryText}>LOGIN</Text>
+              <Text style={[styles.btnPrimaryText, { color: theme.accentText }]}>LOGIN</Text>
             )}
           </TouchableOpacity>
         </View>
 
         {/* Divider */}
         <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>OR</Text>
-          <View style={styles.dividerLine} />
+          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+          <Text style={[styles.dividerText, { color: theme.textMuted }]}>OR</Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
         </View>
 
         {/* Google */}
         <TouchableOpacity
-          style={[styles.btn, styles.btnGoogle]}
+          style={[
+            styles.btn, 
+            styles.btnGoogle,
+            { 
+              backgroundColor: theme.bgSecondary, 
+              borderColor: theme.border 
+            }
+          ]}
           onPress={handleGoogleLogin}
           activeOpacity={0.85}
         >
-          <Text style={styles.btnGoogleText}>G  Continue with Google</Text>
+          <Text style={[styles.btnGoogleText, { color: theme.text }]}>G  Continue with Google</Text>
         </TouchableOpacity>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: theme.textMuted }]}>Don't have an account? </Text>
           <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.footerLink}>Register</Text>
+            <Text style={[styles.footerLink, { color: theme.accent }]}>Register</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -151,67 +170,58 @@ export default function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0a0a0a' },
+  flex: { flex: 1 },
   container: {
     flexGrow: 1,
     paddingHorizontal: 28,
     paddingTop: 80,
     paddingBottom: 40,
-    backgroundColor: '#0a0a0a',
   },
 
   // Header
   header: { marginBottom: 40 },
   eyebrow: {
-    color: '#c8f25d',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 4,
     marginBottom: 8,
   },
   title: {
-    color: '#f0f0f0',
     fontSize: 42,
     fontWeight: '800',
     letterSpacing: -1,
+    fontFamily: 'Besley_700Bold',  // ← Besley font applied here
   },
   titleAccent: {
     width: 40,
     height: 3,
-    backgroundColor: '#c8f25d',
     marginTop: 10,
     borderRadius: 2,
   },
 
   // Error
   errorBox: {
-    backgroundColor: '#2a0a0a',
     borderLeftWidth: 3,
-    borderLeftColor: '#ff4444',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 4,
     marginBottom: 24,
   },
-  errorText: { color: '#ff6666', fontSize: 13 },
+  errorText: { fontSize: 13 },
 
   // Form
   form: { gap: 20, marginBottom: 32 },
   inputGroup: { gap: 6 },
   label: {
-    color: '#555',
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 2,
   },
   input: {
-    backgroundColor: '#161616',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    color: '#f0f0f0',
     fontSize: 15,
   },
 
@@ -222,20 +232,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnPrimary: { backgroundColor: '#c8f25d' },
+  btnPrimary: {},
   btnPrimaryText: {
-    color: '#0a0a0a',
     fontWeight: '800',
     fontSize: 13,
     letterSpacing: 2,
   },
   btnDisabled: { opacity: 0.5 },
   btnGoogle: {
-    backgroundColor: '#161616',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
   },
-  btnGoogleText: { color: '#f0f0f0', fontWeight: '600', fontSize: 14 },
+  btnGoogleText: { 
+    fontWeight: '600', 
+    fontSize: 14 
+  },
 
   // Divider
   divider: {
@@ -244,8 +254,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     gap: 12,
   },
-  dividerLine: { flex: 1, height: 1, backgroundColor: '#1e1e1e' },
-  dividerText: { color: '#333', fontSize: 11, fontWeight: '600', letterSpacing: 2 },
+  dividerLine: { flex: 1, height: 1 },
+  dividerText: { fontSize: 11, fontWeight: '600', letterSpacing: 2 },
 
   // Footer
   footer: {
@@ -253,6 +263,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 36,
   },
-  footerText: { color: '#444', fontSize: 14 },
-  footerLink: { color: '#c8f25d', fontSize: 14, fontWeight: '700' },
+  footerText: { fontSize: 14 },
+  footerLink: { fontSize: 14, fontWeight: '700' },
 })
