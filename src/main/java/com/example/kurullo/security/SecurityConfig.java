@@ -30,7 +30,9 @@ public class SecurityConfig {
                 config.setAllowedOrigins(java.util.List.of(
                     "http://localhost:5173",
                     "http://localhost:5174",
-                    "http://localhost:5175"
+                    "http://localhost:5175",
+                    "https://kurullo.vercel.app",
+                    "https://kurullo-springboot-test-z8xe-psi.vercel.app"
                 ));
                 config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                 config.setAllowedHeaders(java.util.List.of("*"));
