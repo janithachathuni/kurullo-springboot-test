@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { FaCamera } from "react-icons/fa";
-import createprofilebird from "../../Assets/createprofilebird.gif";
-import bannerimg from "../../Assets/bannerimg.png";
-import default_profile_pic from "../../Assets/default_profile_pic.png";
+import createprofilebird from "../../assets/createprofilebird.gif";
+import bannerimg from "../../assets/bannerimg.png";
+import default_profile_pic from "../../assets/default_profile_pic.png";
 
 const CreateProfile = ({ onComplete }) => {
   const [step, setStep] = useState(0);
