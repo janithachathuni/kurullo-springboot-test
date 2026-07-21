@@ -17,7 +17,7 @@ const Register = () => {
     setError("");
     setSuccess("");
     try {
-      const res = await fetch("http://localhost:8080/api/auth/register", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -30,9 +30,9 @@ const Register = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:8080/oauth2/authorization/google";
-  };
+ const handleGoogleLogin = () => {
+  window.location.href = `${import.meta.env.VITE_API_URL}/oauth2/authorization/google`;
+};
 
   const handleGoBack = () => {
     navigate(-1);
