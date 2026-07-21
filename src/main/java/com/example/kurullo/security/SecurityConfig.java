@@ -31,7 +31,8 @@ public class SecurityConfig {
                     "http://localhost:5173",
                     "http://localhost:5174",
                     "http://localhost:5175",
-                    "https://kurullo.vercel.app",
+                        "https://kurullo-birdblog.vercel.app",
+
                     "https://kurullo-springboot-test-z8xe-psi.vercel.app"
                 ));
                 config.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
