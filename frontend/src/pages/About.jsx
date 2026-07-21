@@ -35,24 +35,24 @@ const About = () => {
              }}>
 
           <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            When I was a young girl, a small fry of just 8 years old, my parents took my entire family to a trip to the
+            {/* When I was a young girl, a small fry of just 8 years old, my parents took my entire family to a trip to the
              national parks of Bundala and Yala. My memory of that trip is nothing but tiny fractals - a Crested Serpent Eagle
              perched on the Electricity meter at the ticketing office, a journey to a leopard sighting which turned out to 
              be false (we saw no leopards on that trip), a stay at a hotel near tissa wewa. 
              Since then, we've travelled around the country every single year, and I began 
-             the now long-practiced habit of marking down each bird I saw on these trips. 
+             the now long-practiced habit of marking down each bird I saw on these trips.  */}
           </p>
           <p className="leading-relaxed mt-4" style={{ color: "var(--text-secondary)" }}>
-            I took to marking the birds I saw on pieces of A4 paper, folded up zigzag to look like a brochure.
+            {/* I took to marking the birds I saw on pieces of A4 paper, folded up zigzag to look like a brochure.
             Time passed, and I grew with it, and so did my collection of checklists. In May 2023, I got selected 
             to study Computer Science at the University of Colombo School of Computing, and this idea grew: what 
-            if I make an app which took all my checklists online?
+            if I make an app which took all my checklists online? */}
           </p>
 
           <p className="leading-relaxed mt-4" style={{ color: "var(--text-secondary)" }}>
-            In my head, I call it the Sri Lankan eBird. It's a part educational, part social app where you can
+            {/* In my head, I call it the Sri Lankan eBird. It's a part educational, part social app where you can
             track the birds you see, the places you go, discuss your sightings with people, and share your photos.
-            Our aim is to get more people aware of the wildlife that surrounds us, and to celebrate and protect it. 
+            Our aim is to get more people aware of the wildlife that surrounds us, and to celebrate and protect it.  */}
           </p>
 
           <p className="leading-relaxed mt-4" style={{ color: "var(--text-secondary)" }}>
