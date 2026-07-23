@@ -241,3 +241,224 @@ export async function getAllBirdPhotos() {
     new Date(b.createdAt) - new Date(a.createdAt)
   );
 }
+
+
+// trips
+// ---- Trips ----
+
+export async function createTrip(tripPayload) {
+  const res = await fetch(`${API_BASE_URL}/trips`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(tripPayload),
+  });
+  if (!res.ok) throw new Error("Failed to create trip");
+  return res.json();
+}
+
+export async function getMyTrips() {
+  const res = await fetch(`${API_BASE_URL}/trips`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trips");
+  return res.json();
+}
+
+export async function getTripById(tripId) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trip");
+  return res.json();
+}
+
+export async function deleteTrip(tripId) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete trip");
+}
+
+// ---- Trip Notes ----
+
+export async function getTripNotes(tripId) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/notes`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trip notes");
+  return res.json();
+}
+
+export async function addTripNote(tripId, content) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error("Failed to add note");
+  return res.json();
+}
+
+export async function updateTripNote(tripId, noteId, content) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/notes/${noteId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error("Failed to update note");
+  return res.json();
+}
+
+export async function deleteTripNote(tripId, noteId) {
+  const res = await fetch(`${API_BASE_URL}/trips/${tripId}/notes/${noteId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete note");
+}
+
+export async function getTripLocations(year = null) {
+  const query = year ? `?year=${year}` : "";
+  const res = await fetch(`${API_BASE_URL}/trips/locations${query}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trip locations");
+  return res.json();
+}
+
+export async function getTripStats() {
+  const res = await fetch(`${API_BASE_URL}/trips/stats`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trip stats");
+  return res.json();
+}
+
+
+// ---- Checklists ----
+
+export async function createChecklist(checklistPayload) {
+  const res = await fetch(`${API_BASE_URL}/checklists`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(checklistPayload),
+  });
+  if (!res.ok) throw new Error("Failed to create checklist");
+  return res.json();
+}
+
+export async function getMyChecklists() {
+  const res = await fetch(`${API_BASE_URL}/checklists`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch checklists");
+  return res.json();
+}
+
+export async function getChecklistsByTrip(tripId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/trip/${tripId}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch trip's checklists");
+  return res.json();
+}
+
+export async function getChecklistById(checklistId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch checklist");
+  return res.json();
+}
+
+export async function deleteChecklist(checklistId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete checklist");
+}
+
+// ---- Checklist Entries (bird + count) ----
+
+export async function getChecklistEntries(checklistId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch checklist entries");
+  return res.json();
+}
+
+export async function addChecklistEntry(checklistId, birdId, count) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ birdId, count }),
+  });
+  if (!res.ok) throw new Error("Failed to add checklist entry");
+  return res.json();
+}
+
+export async function updateChecklistEntry(checklistId, entryId, birdId, count) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries/${entryId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ birdId, count }),
+  });
+  if (!res.ok) throw new Error("Failed to update checklist entry");
+  return res.json();
+}
+
+export async function deleteChecklistEntry(checklistId, entryId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries/${entryId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete checklist entry");
+}
+
+// ---- Checklist Notes ----
+
+export async function getChecklistNotes(checklistId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/notes`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch checklist notes");
+  return res.json();
+}
+
+export async function addChecklistNote(checklistId, content) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error("Failed to add checklist note");
+  return res.json();
+}
+
+export async function updateChecklistNote(checklistId, noteId, content) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/notes/${noteId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error("Failed to update checklist note");
+  return res.json();
+}
+
+export async function deleteChecklistNote(checklistId, noteId) {
+  const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/notes/${noteId}`, {
+    method: "DELETE",
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to delete checklist note");
+}
+
+// get bird sounds from xeno canto
+export async function getBirdSounds(birdId) {
+  const res = await fetch(`${API_BASE_URL}/birds/${birdId}/sounds`);
+  if (!res.ok) throw new Error("Failed to fetch bird sounds");
+  return res.json();
+}

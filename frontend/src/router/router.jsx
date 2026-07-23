@@ -70,8 +70,8 @@ const router = createBrowserRouter([
   { path: "/trips", element: <BirderTrips/>},
   { path: "/notifications", element: <BirderNotifications/>},
   { path: "/forum", element: <BirderForum/>},
-  { path: "/checklists/:checklistId", element: <SingleChecklist/>},
-  { path: "/trips/:tripId", element: <SingleTrip/>},
+  { path: "/checklists/:id", element: <SingleChecklist/>},
+  { path: "/trips/:id", element: <SingleTrip/>},
   { path: "/forum/:forumId", element: <Discussion/>},
   // { path: "/edit-profile", element: <EditProfile/>},
   

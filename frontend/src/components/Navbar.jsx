@@ -48,7 +48,7 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between">
         {/* Left-aligned logo and name */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 text-3xl font-extrabold" style={{ color: "var(--accent)" }}>
+          <div className="flex items-center gap-3 text-2xl sm:text-3xl font-extrabold" style={{ color: "var(--accent)" }}>
             <Link to="/"><h1>Kurullo</h1></Link>
             <img
               src={isDark ? birdlogo4 : birdlogo}
@@ -121,7 +121,7 @@ const Navbar = () => {
           <Link 
             to="/about" 
             onClick={handleLinkClick}
-            className="hover:opacity-70 transition text-3xl" 
+            className="hover:opacity-70 transition" 
             style={{ color: "var(--text-primary)" }}
           >
             About
@@ -129,7 +129,7 @@ const Navbar = () => {
           <Link 
             to="/events" 
             onClick={handleLinkClick}
-            className="hover:opacity-70 transition text-3xl" 
+            className="hover:opacity-70 transition" 
             style={{ color: "var(--text-primary)" }}
           >
             Events
@@ -137,7 +137,7 @@ const Navbar = () => {
           <Link 
             to="/articles" 
             onClick={handleLinkClick}
-            className="hover:opacity-70 transition text-3xl" 
+            className="hover:opacity-70 transition" 
             style={{ color: "var(--text-primary)" }}
           >
             Articles
@@ -145,7 +145,7 @@ const Navbar = () => {
           <Link 
             to="/birdlist" 
             onClick={handleLinkClick}
-            className="hover:opacity-70 transition text-3xl" 
+            className="hover:opacity-70 transition" 
             style={{ color: "var(--text-primary)" }}
           >
             Birds of Sri Lanka

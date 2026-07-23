@@ -5,6 +5,7 @@ import backgroundimg from "../assets/backgroundimg.jpg";
 import backgroundimg2 from "../assets/backgroundimg2.jpg";
 import backgroundimg3 from "../assets/backgroundimg3.jpg";
 import backgroundimg4 from "../assets/backgroundimg4.jpg";
+import kphoto from "../assets/kphoto.png";
 import birdlogo from "../assets/birdlogo.png";
 import birdlogo2 from "../assets/birdlogo2.png";
 import Navbar from "./Navbar";
@@ -116,11 +117,20 @@ const Home = () => {
         {/* Left side - Content (full width on mobile, half on desktop) */}
         <div className="w-full md:w-2/5 h-full flex items-center justify-center px-6 md:px-10">
           <div className="max-w-lg w-full text-center md:text-left">
+            {/* Mobile/Tablet: kphoto above headline */}
+            <div className="block md:hidden mb-6 flex justify-center">
+              <img src={kphoto} alt="Kurullo bird" className="w-32 h-32 sm:w-40 sm:h-40 object-contain" />
+            </div>
+            
             <div className="flex items-center justify-center md:justify-start gap-3">
               <h1 className="text-5xl sm:text-6xl md:text-[5rem] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
                 Kurullo
               </h1>
-              <img src={isDark ? birdlogo2 : birdlogo} className="h-12 sm:h-14 md:h-12 -ml-6 sm:-ml-10 -mt-4 md:-mt-25" alt="Kurullo logo" />
+              <img 
+                src={isDark ? birdlogo2 : birdlogo} 
+                className="h-12 sm:h-14 md:h-[5rem] -ml-6 sm:-ml-10 -mt-4 sm:-mt-4 md:-mt-25" 
+                alt="Kurullo logo" 
+              />
             </div>
             <p className="mb-8 md:mb-15 text-base sm:text-lg md:text-[16px] leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               Join a vibrant community of bird enthusiasts. Share your sightings, learn from others, and contribute to bird conservation.

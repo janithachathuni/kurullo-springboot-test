@@ -5,7 +5,7 @@ import BirderSidebar from '../components/Sidebar'
 import BirderRightSidebar from '../components/SidebarRight'
 import { useParams, useNavigate } from 'react-router-dom'
 import { FaMapMarkerAlt } from 'react-icons/fa'
-import { getBirdById, getBirdPhotos } from '../utils/api'
+import { getBirdById, getBirdPhotos, getBirdSounds } from '../utils/api'
 
 // Backend enums come back as raw names like "VERY_COMMON" / "RESIDENT" —
 // convert to display-friendly text, e.g. "Very Common".
@@ -31,6 +31,10 @@ const Bird = () => {
   const [galleryFilter, setGalleryFilter] = useState("featured") // "featured" or "all"
   const [galleryImages, setGalleryImages] = useState([])
   const [galleryLoading, setGalleryLoading] = useState(true)
+
+  // bird song
+  const [sounds, setSounds] = useState([])
+  const [soundsLoading, setSoundsLoading] = useState(true)
 
   // Fetch bird details
   useEffect(() => {
@@ -94,6 +98,36 @@ const Bird = () => {
     }
   }, [id, galleryFilter])
 
+  // Fetch bird sounds
+  useEffect(() => {
+    let isCancelled = false
+
+    const fetchSounds = async () => {
+      setSoundsLoading(true)
+      try {
+        const data = await getBirdSounds(id)
+        if (!isCancelled) {
+          setSounds(data)
+        }
+      } catch (err) {
+        console.error("Failed to fetch bird sounds", err)
+        if (!isCancelled) {
+          setSounds([])
+        }
+      } finally {
+        if (!isCancelled) {
+          setSoundsLoading(false)
+        }
+      }
+    }
+
+    fetchSounds()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [id])
+
   const BirdDetailContent = ({ isBirder }) => {
     if (loading) {
       return (
@@ -148,7 +182,7 @@ const Bird = () => {
         }}
       >
         <div
-          className="overflow-hidden border-t border-b "
+          className="overflow-hidden border-t border-b"
           style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border)" }}
         >
           {/* Name Section */}
@@ -170,6 +204,14 @@ const Bird = () => {
 
           <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
 
+          {bird.endemic && (
+            <div className='p-4'>
+              <p className="font-medium -mb-4" style={{ color: "var(--text-primary)" }}>
+                * Endemic to Sri Lanka
+              </p>
+            </div>
+          )}
+
           {/* Image */}
           <div className="w-full p-4">
             <img
@@ -181,6 +223,40 @@ const Bird = () => {
                 e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100%25" height="400" viewBox="0 0 100%25 400"%3E%3Crect width="100%25" height="400" fill="%23e5e7eb"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%239ca3af" font-size="24" font-family="sans-serif"%3E🦅%3C/text%3E%3C/svg%3E'
               }}
             />
+          </div>
+
+          {/* Bird Sounds - Directly under image */}
+          <div className="px-4 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <span className="text-sm font-semibold whitespace-nowrap" style={{ color: "var(--text-primary)" }}>
+                Bird sounds:
+              </span>
+              {soundsLoading ? (
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                  Loading...
+                </span>
+              ) : sounds.length > 0 ? (
+                <div className="flex-1 w-full">
+                  {sounds.slice(0, 1).map((s) => (
+                    <div key={s.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
+                      <audio 
+                        controls 
+                        src={s.fileUrl} 
+                        className="w-full sm:max-w-[300px] h-8"
+                        style={{ height: '32px' }}
+                      />
+                      <span className="text-xs whitespace-nowrap sm:whitespace-nowrap" style={{ color: "var(--text-secondary)" }}>
+                        {s.recordist} · {s.location}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                  No recordings available
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
@@ -204,12 +280,7 @@ const Bird = () => {
                 <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text-secondary)" }}>Frequency</p>
                 <p className="font-medium" style={{ color: "var(--text-primary)" }}>{formatEnumLabel(bird.frequency)}</p>
               </div>
-              <div>
-                <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text-secondary)" }}>Status</p>
-                <p className="font-medium" style={{ color: "var(--text-primary)" }}>
-                  {bird.endemic ? "Endemic to Sri Lanka" : "Not endemic"}
-                </p>
-              </div>
+              
             </div>
           </div>
 
@@ -258,7 +329,7 @@ const Bird = () => {
                   {/* Right column - Habitat details (5 parts) */}
                   <div className="col-span-5 flex flex-col justify-center">
                     <div>
-                      <p className="text-sm font-semibold " style={{ color: "var(--text-primary)" }}>Habitat</p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>Habitat</p>
                       <p className="font-medium" style={{ color: "var(--text-secondary)" }}>{bird.habitat}</p>
                     </div>
                   </div>
@@ -297,14 +368,14 @@ const Bird = () => {
           )}
 
           {/* Actions */}
-          <div className="p-4 flex gap-4">
+          <div className="p-4 flex gap-4 flex-wrap">
             <button
-                onClick={() => navigate('/birdlist')}
-                className="px-6 py-2 rounded-lg transition-all font-medium hover:opacity-90"
-                style={{ backgroundColor: "var(--accent)", color: "var(--bg-primary)" }}
-              >
-                Back to Birds
-              </button>
+              onClick={() => navigate('/birdlist')}
+              className="px-6 py-2 rounded-lg transition-all font-medium hover:opacity-90"
+              style={{ backgroundColor: "var(--accent)", color: "var(--bg-primary)" }}
+            >
+              Back to Birds
+            </button>
             {isAdmin && (
               <button
                 onClick={() => navigate(`/admin/edit-bird/${bird.id}`)}
@@ -319,13 +390,13 @@ const Bird = () => {
 
           {/* Gallery */}
           <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-3 gap-2">
               <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
                 Gallery
               </h1>
               
               {/* Featured/All Toggle */}
-              <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: "var(--border)" }}>
+              <div className="flex rounded-lg overflow-hidden border flex-shrink-0" style={{ borderColor: "var(--border)" }}>
                 <button
                   onClick={() => setGalleryFilter("featured")}
                   className={`px-4 py-1.5 text-sm font-medium transition-colors ${

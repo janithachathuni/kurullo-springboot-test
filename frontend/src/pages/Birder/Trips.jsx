@@ -1,16 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import { 
   FiCalendar, 
   FiMapPin, 
   FiTrash2, 
-  FiPlus,
-  FiSearch
+  FiPlus
 } from 'react-icons/fi';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useNavigate } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { getMyTrips, createTrip, deleteTrip, getTripLocations, getTripStats } from '../../utils/api';
+import CreateTrip from './CreateTrip';
 
 // Fix for default marker icon in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -20,208 +22,65 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-// Component to update map center when location changes
-const MapUpdater = ({ center, zoom }) => {
+// Component to fit Sri Lanka bounds perfectly
+const FitSriLankaBounds = () => {
   const map = useMap();
   useEffect(() => {
-    if (center) {
-      map.setView(center, zoom);
-    }
-  }, [center, zoom, map]);
+    // Sri Lanka bounding box
+    const bounds = L.latLngBounds([
+      [5.9, 79.5], // South-West
+      [9.9, 81.9]  // North-East
+    ]);
+    map.fitBounds(bounds, { padding: [10, 10] });
+  }, [map]);
   return null;
 };
 
-// Dummy data
-const dummyTrips = [
-  {
-    _id: "1",
-    title: "Yellowstone National Park",
-    location: "Yellowstone National Park, Wyoming, USA",
-    createdAt: "2024-04-15T10:30:00Z",
-    checklists: [{ _id: "c1" }, { _id: "c2" }],
-    notes: "Great bird watching experience"
-  },
-  {
-    _id: "2",
-    title: "Grand Canyon",
-    location: "Grand Canyon National Park, Arizona, USA",
-    createdAt: "2024-05-20T08:15:00Z",
-    checklists: [{ _id: "c3" }],
-    notes: "Amazing views"
-  },
-  {
-    _id: "3",
-    title: "Everglades National Park",
-    location: "Everglades National Park, Florida, USA",
-    createdAt: "2024-06-10T14:45:00Z",
-    checklists: [{ _id: "c4" }, { _id: "c5" }, { _id: "c6" }],
-    notes: "Lots of bird species"
-  }
-];
-
-// Sri Lanka bounding box for Photon API
-const SRI_LANKA_BBOX = [79.5, 5.9, 81.9, 9.9];
-
 const Trips = () => {
-  const [trips, setTrips] = useState(dummyTrips);
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date-desc");
   const [showPopup, setShowPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [tripToDelete, setTripToDelete] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [tripTitle, setTripTitle] = useState("");
-  const [tripLocation, setTripLocation] = useState("");
-  const [tripNotes, setTripNotes] = useState("");
-  
-  // Location search states
-  const [locationSearchQuery, setLocationSearchQuery] = useState("");
-  const [locationSearchResults, setLocationSearchResults] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [placeDetails, setPlaceDetails] = useState(null);
-  const [mapCenter, setMapCenter] = useState([7.8731, 80.7718]); // Sri Lanka center
-  const [mapZoom, setMapZoom] = useState(8);
-  
-  const locationInputRef = useRef(null);
-  const locationSuggestionsRef = useRef(null);
-  const searchTimeoutRef = useRef(null);
+  const [stats, setStats] = useState(null);
+  const [allLocations, setAllLocations] = useState([]);
+  const navigate = useNavigate();
   
   const tripsPerPage = 10;
 
-  // Search location using Photon API
-  const searchLocation = async (query) => {
-    if (!query.trim() || query.length < 2) {
-      setLocationSearchResults([]);
-      setShowSearchResults(false);
-      return;
-    }
-
-    try {
-      setSearching(true);
-
-      const response = await fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&` +
-        `limit=10&lang=en&` +
-        `bbox=${SRI_LANKA_BBOX.join(',')}`
-      );
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (data && data.features && data.features.length > 0) {
-        const results = data.features.map((feature) => {
-          const properties = feature.properties;
-          const geometry = feature.geometry;
-          
-          const name = properties.name || properties.street || '';
-          const city = properties.city || properties.town || properties.village || properties.suburb || '';
-          const state = properties.state || properties.region || properties.county || '';
-          const country = properties.country || '';
-          
-          const displayParts = [name, city, state, country].filter(Boolean);
-          const displayName = displayParts.length > 0 ? displayParts.join(', ') : name;
-          
-          const fullAddressParts = [];
-          if (properties.street) fullAddressParts.push(properties.street);
-          if (properties.housenumber) fullAddressParts.push(properties.housenumber);
-          if (city) fullAddressParts.push(city);
-          if (state) fullAddressParts.push(state);
-          if (country) fullAddressParts.push(country);
-          const fullAddress = fullAddressParts.length > 0 ? fullAddressParts.join(', ') : displayName;
-          
-          return {
-            name: name || displayName,
-            displayName: displayName,
-            formattedAddress: fullAddress,
-            lat: geometry.coordinates[1],
-            lng: geometry.coordinates[0],
-            placeId: properties.osm_id?.toString() || `place_${Math.random()}`,
-            type: properties.osm_value || properties.osm_key || 'place',
-            class: properties.osm_key || '',
-            city: city,
-            state: state,
-            country: country,
-            fullDetails: properties,
-          };
-        });
-
-        setLocationSearchResults(results);
-        setShowSearchResults(true);
-      } else {
-        setLocationSearchResults([]);
-        setShowSearchResults(true);
-      }
-
-      setSearching(false);
-    } catch (err) {
-      console.error("Error searching location with Photon:", err);
-      setSearching(false);
-      setLocationSearchResults([]);
-      setShowSearchResults(false);
-    }
-  };
-
-  // Debounced search
+  // Fetch trips on mount
   useEffect(() => {
-    if (searchTimeoutRef.current) {
-      clearTimeout(searchTimeoutRef.current);
-    }
-
-    if (locationSearchQuery.trim()) {
-      searchTimeoutRef.current = setTimeout(() => {
-        searchLocation(locationSearchQuery);
-      }, 300);
-    } else {
-      setLocationSearchResults([]);
-      setShowSearchResults(false);
-    }
-
-    return () => {
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
+    const loadTrips = async () => {
+      try {
+        const data = await getMyTrips();
+        setTrips(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
-  }, [locationSearchQuery]);
+    loadTrips();
+  }, []);
 
-  const handleSelectLocation = (location) => {
-    setPlaceDetails({
-      displayName: location.displayName || location.name,
-      formattedAddress: location.formattedAddress,
-      location: {
-        lat: location.lat,
-        lng: location.lng,
-      },
-      placeId: location.placeId,
-      city: location.city,
-      state: location.state,
-      country: location.country,
-    });
-    setTripLocation(location.displayName || location.name);
-    setLocationSearchQuery("");
-    setShowSearchResults(false);
-    setMapCenter([location.lat, location.lng]);
-    setMapZoom(15);
-  };
-
-  // Click outside to close location suggestions
+  // Fetch stats and locations on mount
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (
-        locationSuggestionsRef.current && 
-        !locationSuggestionsRef.current.contains(e.target) &&
-        locationInputRef.current &&
-        !locationInputRef.current.contains(e.target)
-      ) {
-        setShowSearchResults(false);
+    const loadStatsAndLocations = async () => {
+      try {
+        const [statsData, locationsData] = await Promise.all([
+          getTripStats(),
+          getTripLocations(),
+        ]);
+        setStats(statsData);
+        setAllLocations(locationsData.filter(l => l.latitude != null && l.longitude != null));
+      } catch (err) {
+        console.error(err);
       }
     };
-    
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    loadStatsAndLocations();
   }, []);
 
   const filteredTrips = trips
@@ -237,8 +96,6 @@ const Trips = () => {
         return new Date(a.createdAt) - new Date(b.createdAt);
       } else if (sortBy === "date-desc") {
         return new Date(b.createdAt) - new Date(a.createdAt);
-      } else if (sortBy === "popular") {
-        return (b.checklists?.length || 0) - (a.checklists?.length || 0);
       }
       return 0;
     });
@@ -253,36 +110,16 @@ const Trips = () => {
 
   const handleAddTripClick = () => {
     setShowPopup(true);
-    setTripTitle("");
-    setTripLocation("");
-    setTripNotes("");
-    setPlaceDetails(null);
-    setLocationSearchQuery("");
-    setLocationSearchResults([]);
-    setMapCenter([7.8731, 80.7718]);
-    setMapZoom(8);
   };
 
-  const handleSaveTrip = () => {
-    if (!tripTitle.trim() || !tripLocation.trim()) {
-      alert("Please fill in both title and location");
-      return;
+  const handleSaveTrip = async (payload) => {
+    try {
+      const newTrip = await createTrip(payload);
+      setTrips([newTrip, ...trips]);
+      setShowPopup(false);
+    } catch (err) {
+      alert(err.message);
     }
-
-    const newTrip = {
-      _id: Date.now().toString(),
-      title: tripTitle.trim(),
-      location: tripLocation.trim(),
-      createdAt: new Date().toISOString(),
-      checklists: [],
-      notes: tripNotes.trim()
-    };
-    
-    setTrips([newTrip, ...trips]);
-    setShowPopup(false);
-    setTripTitle("");
-    setTripLocation("");
-    setTripNotes("");
   };
 
   const handleDeleteClick = (trip) => {
@@ -290,11 +127,16 @@ const Trips = () => {
     setShowDeletePopup(true);
   };
 
-  const handleConfirmDelete = () => {
-    if (tripToDelete) {
-      setTrips(trips.filter(t => t._id !== tripToDelete._id));
+  const handleConfirmDelete = async () => {
+    if (!tripToDelete) return;
+    try {
+      await deleteTrip(tripToDelete.id);
+      setTrips(trips.filter(t => t.id !== tripToDelete.id));
       setShowDeletePopup(false);
       setTripToDelete(null);
+    } catch (err) {
+      alert(err.message);
+      setShowDeletePopup(false);
     }
   };
 
@@ -333,54 +175,96 @@ const Trips = () => {
           </button>
         </div>
 
-
         <div className="flex flex-col md:flex-row gap-4 mb-4">
-            <div className="flex-1">
-              <input 
-                type="text" 
-                placeholder="Search trips by title or location..." 
-                className="w-full p-2 pl-4 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                style={{ 
-                  backgroundColor: "var(--bg-primary)", 
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border)"
-                }}
-                value={searchTerm} 
-                onChange={(e) => setSearchTerm(e.target.value)} 
-              />
-            </div>
-            
-            <select 
-              className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+          <div className="flex-1">
+            <input 
+              type="text" 
+              placeholder="Search trips by title or location..." 
+              className="w-full p-2 pl-4 rounded-full focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
               style={{ 
                 backgroundColor: "var(--bg-primary)", 
                 color: "var(--text-primary)",
                 border: "1px solid var(--border)"
               }}
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+            />
+          </div>
+          
+          <select 
+            className="p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+            style={{ 
+              backgroundColor: "var(--bg-primary)", 
+              color: "var(--text-primary)",
+              border: "1px solid var(--border)"
+            }}
+            value={sortBy} 
+            onChange={(e) => setSortBy(e.target.value)}
+          >
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+          </select>
+        </div>
+
+        {/* Stats + Map Section - Single square block with map left and stats right */}
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl" style={{ position: 'relative', zIndex: 1 }}>
+          {/* Map - Left side */}
+          <div className="aspect-square rounded-lg overflow-hidden" style={{ border: "1px solid var(--border)" }}>
+            <MapContainer
+              center={[7.8731, 80.7718]}
+              zoom={7}
+              style={{ height: "100%", width: "100%" }}
+              scrollWheelZoom={true}
+              zoomControl={true}
             >
-              <option value="date-desc">Newest First</option>
-              <option value="date-asc">Oldest First</option>
-              <option value="popular">Most Popular</option>
-            </select>
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {allLocations.map((loc) => (
+                <Marker key={loc.id} position={[loc.latitude, loc.longitude]} />
+              ))}
+              <FitSriLankaBounds />
+            </MapContainer>
           </div>
 
-        <div className="p-4 w-full min-w-0 rounded-lg" style={{ backgroundColor: "var(--bg-secondary)" }}>
-          
-          
+          {/* Stats - Right side */}
+          <div className="aspect-square rounded-lg p-6 flex flex-col justify-center" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}>
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>Places visited this year</p>
+                <p className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
+                  {stats?.placesThisYear ?? "—"}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>All time</p>
+                <p className="text-4xl font-bold" style={{ color: "var(--text-primary)" }}>
+                  {stats?.placesAllTime ?? "—"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <div className="p-4 w-full min-w-0 rounded-lg" style={{ backgroundColor: "var(--bg-secondary)" }}>
           <div className="space-y-2">
-            {currentTrips.length > 0 ? (
+            {loading ? (
+              <div className="p-8 text-center rounded-lg" style={{ backgroundColor: "var(--bg-card)" }}>
+                <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                  Loading trips...
+                </p>
+              </div>
+            ) : currentTrips.length > 0 ? (
               currentTrips.map((trip) => (
                 <div 
-                  key={trip._id} 
+                  key={trip.id} 
                   className="w-full flex items-start gap-3 text-left p-3 rounded-lg transition hover:opacity-90 min-w-0 cursor-pointer"
                   style={{
                     backgroundColor: "var(--bg-card)",
                     border: "1px solid var(--border)",
                   }}
-                  onClick={() => (window.location.href = `/birder/trip/${trip._id}`)}
+                  onClick={() => (window.location.href = `/trips/${trip.id}`)}
                 >
                   <div className="flex-1 min-w-0">
                     <h3 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
@@ -395,16 +279,7 @@ const Trips = () => {
                         <FiCalendar className="w-3 h-3" />
                         <span>{formatDate(trip.createdAt)}</span>
                       </div>
-                      <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                        Checklists: {trip.checklists?.length || 0}
-                      </p>
                     </div>
-                    {trip.notes && (
-                      <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-                        {trip.notes.substring(0, 50)}
-                        {trip.notes.length > 50 ? "..." : ""}
-                      </p>
-                    )}
                   </div>
                   <button
                     onClick={(e) => {
@@ -467,221 +342,14 @@ const Trips = () => {
       </div>
       <SidebarRight />
 
-      {/* Add Trip Popup with Location Search and Map */}
-      {showPopup && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="p-6 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto" style={{ backgroundColor: "var(--bg-secondary)" }}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Add New Trip</h3>
-              <button
-                onClick={() => setShowPopup(false)}
-                className="text-xl hover:opacity-70"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                ×
-              </button>
-            </div>
+      {/* Create Trip Popup - Higher z-index */}
+      <CreateTrip 
+        isOpen={showPopup}
+        onClose={() => setShowPopup(false)}
+        onSave={handleSaveTrip}
+      />
 
-            <div className="mb-4">
-              <label className="block mb-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Trip Title *
-              </label>
-              <input
-                type="text"
-                placeholder="Enter trip title..."
-                value={tripTitle}
-                onChange={(e) => setTripTitle(e.target.value)}
-                className="w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                style={{ 
-                  backgroundColor: "var(--bg-card)", 
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border)"
-                }}
-              />
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Location *
-              </label>
-              <div className="relative location-search-container" style={{ zIndex: 999 }}>
-                <div className="relative">
-                  <input
-                    ref={locationInputRef}
-                    type="text"
-                    placeholder="Search for a location in Sri Lanka..."
-                    value={locationSearchQuery || tripLocation}
-                    onChange={(e) => {
-                      setLocationSearchQuery(e.target.value);
-                      if (tripLocation && e.target.value !== tripLocation) {
-                        setTripLocation("");
-                        setPlaceDetails(null);
-                      }
-                    }}
-                    onFocus={() => {
-                      if (locationSearchQuery.trim() && locationSearchResults.length > 0) {
-                        setShowSearchResults(true);
-                      }
-                    }}
-                    className="w-full p-2 pl-10 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                    style={{ 
-                      backgroundColor: "var(--bg-card)", 
-                      color: "var(--text-primary)",
-                      border: "1px solid var(--border)"
-                    }}
-                  />
-                  <FiSearch className="absolute left-3 top-3" style={{ color: "var(--text-secondary)" }} />
-                  {searching && (
-                    <div className="absolute right-3 top-3">
-                      <div className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Location Search Results Dropdown - Higher z-index */}
-                {showSearchResults && (
-                  <div 
-                    ref={locationSuggestionsRef}
-                    className="absolute left-0 right-0 mt-2 border rounded-lg shadow-lg max-h-64 overflow-y-auto"
-                    style={{ 
-                      backgroundColor: "var(--bg-card)",
-                      borderColor: "var(--border)",
-                      color: "var(--text-primary)",
-                      zIndex: 9999,
-                      position: 'absolute',
-                    }}
-                  >
-                    {locationSearchResults.length > 0 ? (
-                      locationSearchResults.map((result, index) => (
-                        <div
-                          key={index}
-                          onClick={() => handleSelectLocation(result)}
-                          className="p-3 cursor-pointer border-b last:border-b-0 transition-colors"
-                          style={{ 
-                            borderColor: "var(--border)",
-                            backgroundColor: "var(--bg-card)",
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--bg-secondary)";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = "var(--bg-card)";
-                          }}
-                        >
-                          <div className="flex items-start gap-2">
-                            <FiMapPin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--text-secondary)" }} />
-                            <div>
-                              <p className="font-medium">{result.displayName || result.name}</p>
-                              <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                                {result.formattedAddress}
-                              </p>
-                              {result.city && (
-                                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                                  {[result.city, result.state, result.country].filter(Boolean).join(', ')}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center" style={{ color: "var(--text-secondary)" }}>
-                        {searching ? "Searching..." : `No locations found matching "${locationSearchQuery}"`}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Selected Location Details */}
-            {placeDetails && (
-              <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)" }}>
-                <p className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-                  <FiMapPin/> {placeDetails.displayName}
-                </p>
-                <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-                  {placeDetails.formattedAddress}
-                </p>
-                {placeDetails.location && (
-                  <p className="text-xs mt-1" style={{ color: "var(--text-secondary)" }}>
-                    Coordinates: {placeDetails.location.lat.toFixed(6)}, {placeDetails.location.lng.toFixed(6)}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Map Container - Lower z-index */}
-            <div className="mb-4" style={{ position: 'relative', zIndex: 1 }}>
-              <MapContainer
-                center={mapCenter}
-                zoom={mapZoom}
-                style={{ height: "250px", width: "100%", borderRadius: "8px" }}
-                scrollWheelZoom={true}
-              >
-                <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                />
-                {placeDetails && (
-                  <Marker
-                    position={[
-                      placeDetails.location.lat,
-                      placeDetails.location.lng,
-                    ]}
-                  />
-                )}
-                <MapUpdater center={mapCenter} zoom={mapZoom} />
-              </MapContainer>
-            </div>
-
-            <div className="mb-4">
-              <label className="block mb-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-                Notes (optional)
-              </label>
-              <textarea
-                placeholder="Add notes about your trip..."
-                value={tripNotes}
-                onChange={(e) => setTripNotes(e.target.value)}
-                rows="3"
-                className="w-full p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-none"
-                style={{ 
-                  backgroundColor: "var(--bg-card)", 
-                  color: "var(--text-primary)",
-                  border: "1px solid var(--border)"
-                }}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setShowPopup(false)}
-                className="px-4 py-2 rounded-lg hover:opacity-70 text-sm"
-                style={{ 
-                  border: "1px solid var(--border)",
-                  backgroundColor: "transparent",
-                  color: "var(--text-secondary)"
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveTrip}
-                disabled={!tripTitle.trim() || !tripLocation.trim()}
-                className="px-4 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm"
-                style={{ 
-                  backgroundColor: (tripTitle.trim() && tripLocation.trim()) ? "var(--accent)" : "#d1d5db",
-                  color: (tripTitle.trim() && tripLocation.trim()) ? "var(--accent-text)" : "#9ca3af"
-                }}
-              >
-                Save Trip
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Popup */}
+      {/* Delete Confirmation Popup - Higher z-index */}
       {showDeletePopup && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="p-6 rounded-lg w-full max-w-md" style={{ backgroundColor: "var(--bg-secondary)" }}>
