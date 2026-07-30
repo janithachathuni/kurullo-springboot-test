@@ -64,6 +64,8 @@ public class SecurityConfig {
             .requestMatchers(HttpMethod.POST, "/api/posts/*/like").authenticated()
             .requestMatchers("/api/trips/**").authenticated()
             .requestMatchers("/api/checklists/**").authenticated()
+            .requestMatchers(HttpMethod.POST, "/api/moderator-invite/confirm").permitAll()
+            .requestMatchers("/api/admin/moderators/**").hasRole("ADMIN")
             .anyRequest().authenticated()
         )
             .exceptionHandling(ex -> ex

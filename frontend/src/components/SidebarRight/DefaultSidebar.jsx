@@ -73,7 +73,7 @@ const DefaultSidebar = () => {
             speciesCount: speciesByTrip[trip.id] || 0,
           }))
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-          .slice(0, 3);
+          .slice(0, 2);
 
         setRecentTrips(enrichedTrips);
       } catch (err) {
