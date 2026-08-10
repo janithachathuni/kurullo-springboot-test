@@ -68,6 +68,7 @@ const Sidebar = () => {
   // Handle create post completion
   const handleCreatePostComplete = () => {
     setShowCreatePost(false);
+    window.dispatchEvent(new CustomEvent('post-created'));
     // Optionally refresh the page or update feed
   };
 

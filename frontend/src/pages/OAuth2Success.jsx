@@ -16,7 +16,6 @@ if (token) {
   localStorage.setItem('token', token)
   localStorage.setItem('role', role)
   localStorage.setItem('user', JSON.stringify({ id: Number(userId), username, role }))
-  localStorage.setItem('user', JSON.stringify({ username, role }))  // add this
 
   if (role === 'ADMIN') {
     window.location.href = '/admin/dashboard'

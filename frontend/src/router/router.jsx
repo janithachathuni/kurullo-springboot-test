@@ -31,6 +31,7 @@ import SingleTrip from "../pages/Birder/SingleTrip";
 import EditProfile from "../pages/Birder/EditProfile";
 import Discussion from "../pages/Birder/Discussion";
 import ModeratorConfirmPage from "../pages/Birder/ModeratorConfirmPage"
+import SinglePost from "../pages/Birder/SinglePost";
 
 // Admin
 import AdminDashboard from "../pages/Admin/Dashboard";
@@ -76,6 +77,7 @@ const router = createBrowserRouter([
   { path: "/forum/:forumId", element: <Discussion/>},
   // { path: "/edit-profile", element: <EditProfile/>},
   { path: "/moderator-confirm", element: <ModeratorConfirmPage /> },
+  { path: "/posts/:id", element: <SinglePost /> },
   
   //admin
   { path: "/admin/dashboard", element: <AdminDashboard/>},

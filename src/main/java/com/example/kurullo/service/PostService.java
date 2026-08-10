@@ -29,6 +29,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final ProfileRepository profileRepository;
     private final Cloudinary cloudinary;
+    private final NotificationService notificationService;
 
     public PostService(PostRepository postRepository,
                        BirdRepository birdRepository,
@@ -37,7 +38,8 @@ public class PostService {
                        PostLikeRepository postLikeRepository,
                        CommentRepository commentRepository,
                        UserRepository userRepository,
-                       ProfileRepository profileRepository) {
+                       ProfileRepository profileRepository,
+                       NotificationService notificationService) {
         this.postRepository = postRepository;
         this.birdRepository = birdRepository;
         this.cloudinary = cloudinary;
@@ -46,6 +48,7 @@ public class PostService {
         this.commentRepository = commentRepository;
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -153,6 +156,19 @@ public class PostService {
             like.setPost(post);
             like.setUserId(userId);
             postLikeRepository.save(like);
+
+            User liker = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+            notificationService.create(
+                    post.getUserId(),
+                    userId,
+                    NotificationType.LIKE,
+                    "POST",
+                    postId,
+                    liker.getUsername() + " liked your post"
+            );
+
             return true;
         }
     }
@@ -183,7 +199,8 @@ public class PostService {
                 user.getId(),
                 user.getUsername(),
                 profile != null ? profile.getDisplayName() : user.getUsername(),
-                profile != null ? profile.getProfilePic() : null
+                profile != null ? profile.getProfilePic() : null,
+                user.isModerator()
         );
 
         List<PostPhotoResponse> photos = post.getPhotos().stream()

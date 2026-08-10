@@ -127,6 +127,6 @@ public class CommentService {
         String displayName = profile != null ? profile.getDisplayName() : user.getUsername();
         String profilePic = profile != null ? profile.getProfilePic() : null;
 
-        return new CommentAuthorResponse(user.getId(), user.getUsername(), displayName, profilePic);
+        return new CommentAuthorResponse(user.getId(), user.getUsername(), displayName, profilePic, user.isModerator());
     }
 }

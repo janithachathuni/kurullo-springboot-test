@@ -7,6 +7,7 @@ import bannerimg from '../../assets/bannerimg.png';
 import default_profile_pic from '../../assets/default_profile_pic.png';
 import Post from "./Post";
 import EditProfile from './EditProfile';
+import { MdVerified } from 'react-icons/md';
 
 const Blog = () => {
   const { username } = useParams();
@@ -34,8 +35,8 @@ const Blog = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {},
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) {
           navigate('/404', { replace: true });
@@ -52,7 +53,7 @@ const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}
       }
     };
     if (username) fetchProfile();
-  }, [username]);
+  }, [username, navigate]);
 
   const authHeaders = () => {
     const token = localStorage.getItem('token');
@@ -91,7 +92,8 @@ const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}
     setActionLoading(true);
     const endpoint = isBlocked ? 'unblock' : 'block';
     try {
-const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}/${endpoint}`, {        method: 'POST',
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}/${endpoint}`, {
+        method: 'POST',
         headers: authHeaders(),
       });
       const data = await res.json();
@@ -272,15 +274,47 @@ const res = await fetch(`${import.meta.env.VITE_API_URL}/api/profile/${username}
                   </div>
 
                   <div className="flex-1 pt-2">
-                    <h1 className="text-2xl font-bold flex items-center gap-2" style={{ color: "var(--accent)" }}>
-                      {userData.displayName || userData.username}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h1 className="text-2xl font-bold" style={{ color: "var(--accent)" }}>
+                        {userData.displayName || userData.username}
+                      </h1>
+                      
+                      {/* Moderator Checkmark */}
+                      {userData.moderator === true && (
+                        <span 
+                          className="inline-flex items-center justify-center"
+                          style={{ color: "#1DA1F2" }}
+                          title="Moderator"
+                        >
+                          <MdVerified className="w-5 h-5" />
+                        </span>
+                      )}
+                      
+                      {/* Admin Crown (optional - for completeness) */}
+                      {userData.role === 'ADMIN' && (
+                        <span 
+                          className="inline-flex items-center justify-center"
+                          style={{ color: "#FFD700" }}
+                          title="Administrator"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor" 
+                            className="w-5 h-5"
+                          >
+                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                          </svg>
+                        </span>
+                      )}
+                      
                       <span
                         className="text-sm font-normal opacity-70"
-                        style={{ color: "var(--text-secondary)", marginTop: "7px", fontFamily: "Schibsted Grotesk" }}
+                        style={{ color: "var(--text-secondary)", fontFamily: "Schibsted Grotesk" }}
                       >
                         @{userData.username}
                       </span>
-                    </h1>
+                    </div>
                     {userData.bio && (
                       <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
                         {userData.bio}

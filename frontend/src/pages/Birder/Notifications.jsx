@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/Sidebar';
 import SidebarRight from '../../components/SidebarRight/SidebarShell';
 import {
@@ -42,6 +43,7 @@ const timeAgo = (isoString) => {
 };
 
 const Notifications = () => {
+  const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -106,6 +108,16 @@ const Notifications = () => {
     }
   };
 
+  const handleNotificationClick = (n) => {
+    markOneRead(n.id);
+
+    if (n.type === 'FOLLOW' && n.actorUsername) {
+      navigate(`/${n.actorUsername}`);
+    } else if (n.postId) {
+      navigate(`/posts/${n.postId}`);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.read).length;
   const visible = filter === 'unread' ? notifications.filter(n => !n.read) : notifications;
 
@@ -165,7 +177,7 @@ const Notifications = () => {
               {visible.map(n => (
                 <button
                   key={n.id}
-                  onClick={() => markOneRead(n.id)}
+                  onClick={() => handleNotificationClick(n)}
                   className="w-full flex items-start gap-3 text-left p-3 rounded-lg transition hover:opacity-90 min-w-0"
                   style={{
                     backgroundColor: n.read ? 'var(--bg-card)' : 'var(--bg-primary)',

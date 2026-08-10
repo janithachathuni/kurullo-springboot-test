@@ -1,27 +1,21 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaHeart, FaRegHeart, FaComment, FaShare, FaTrash, FaEllipsisV } from 'react-icons/fa';
+import { MdVerified } from 'react-icons/md';
 import profileimg from "../../assets/default_profile_pic.png";
-import { getFeed, getPostsByUser, togglePostLike, getComments, addComment, toggleCommentLike, deletePost } from '../../utils/api';
-const currentUser = JSON.parse(localStorage.getItem("user") || "null");
+import { getFeed, getPostsByUser, getPostById, togglePostLike, getComments, addComment, toggleCommentLike, deletePost } from '../../utils/api';
 import CreateReport from './CreateReport';
 
-const Post = ({ userId }) => {
+const Post = ({ userId, postId }) => {
+  const navigate = useNavigate();
+
   const [currentUser, setCurrentUser] = useState(() =>
     JSON.parse(localStorage.getItem("user") || "null")
   );
-
-  useEffect(() => {
-    const syncUser = () => setCurrentUser(JSON.parse(localStorage.getItem("user") || "null"));
-    window.addEventListener('storage', syncUser);
-    return () => window.removeEventListener('storage', syncUser);
-  }, []);
-
-  const isOwnBlog = userId && currentUser && String(currentUser.id) === String(userId);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [commentsByPost, setCommentsByPost] = useState({});
   const [commentsLoaded, setCommentsLoaded] = useState({});
-
   const [replyInputs, setReplyInputs] = useState({});
   const [commentInputs, setCommentInputs] = useState({});
   const [showReplies, setShowReplies] = useState({});
@@ -31,13 +25,35 @@ const Post = ({ userId }) => {
   const [showMenu, setShowMenu] = useState(null);
   const [showReport, setShowReport] = useState(false);
 
+  const isOwnBlog = userId && currentUser && String(currentUser.id) === String(userId);
+
+  useEffect(() => {
+    const syncUser = () => setCurrentUser(JSON.parse(localStorage.getItem("user") || "null"));
+    window.addEventListener('storage', syncUser);
+    return () => window.removeEventListener('storage', syncUser);
+  }, []);
+
+  useEffect(() => {
+    if (postId && posts.length > 0) {
+      setShowComments({ [postId]: true });
+      if (!commentsLoaded[postId]) {
+        loadComments(postId);
+      }
+    }
+  }, [postId, posts]);
+
   const fetchPosts = async () => {
   setLoading(true);
   try {
-    const page = userId
-      ? await getPostsByUser(userId, 0, 10)
-      : await getFeed(0, 10);
-    setPosts(page.content || []);
+    if (postId) {
+      const singlePost = await getPostById(postId);
+      setPosts([singlePost]);
+    } else {
+      const page = userId
+        ? await getPostsByUser(userId, 0, 10)
+        : await getFeed(0, 10);
+      setPosts(page.content || []);
+    }
   } catch (err) {
     console.error("Failed to fetch posts:", err);
   } finally {
@@ -47,7 +63,7 @@ const Post = ({ userId }) => {
 
 useEffect(() => {
   fetchPosts();
-}, [userId]);
+}, [userId, postId]);
 
 useEffect(() => {
   window.addEventListener('post-created', fetchPosts);
@@ -243,8 +259,11 @@ useEffect(() => {
           />
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+              <span className="text-sm font-medium flex items-center gap-1" style={{ color: "var(--text-primary)" }}>
                 {reply.author?.displayName}
+                {reply.author?.moderator && (
+                  <MdVerified size={12} style={{ color: "#1DA1F2" }} title="Moderator" />
+                )}
               </span>
               <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
                 @{reply.author?.username}
@@ -371,25 +390,37 @@ if (posts.length === 0) {
             }}
           >
             {/* Post Header */}
-            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: "var(--border)" }}>
+            <div
+              onClick={() => !postId && navigate(`/posts/${post.id}`)}
+              className={`flex items-center justify-between p-4 border-b ${postId ? "" : "cursor-pointer"}`}
+              style={{ borderColor: "var(--border)" }}
+            >
               <div className="flex items-center space-x-3">
-                <img
-                  src={post.author?.profilePic || profileimg}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover border"
-                  style={{ borderColor: "var(--border)" }}
-                />
-                <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
-                  {post.author?.displayName}
-                </span>
-                <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
-                  @{post.author?.username}
-                </span>
+                <div
+                  onClick={(e) => { e.stopPropagation(); navigate(`/blog/${post.author?.username}`); }}
+                  className="flex items-center space-x-3 cursor-pointer"
+                >
+                  <img
+                    src={post.author?.profilePic || profileimg}
+                    alt="Profile"
+                    className="w-10 h-10 rounded-full object-cover border"
+                    style={{ borderColor: "var(--border)" }}
+                  />
+                  <span className="font-semibold flex items-center gap-1" style={{ color: "var(--text-primary)" }}>
+                    {post.author?.displayName}
+                    {post.author?.moderator && (
+                      <MdVerified style={{ color: "#1DA1F2" }} title="Moderator" />
+                    )}
+                  </span>
+                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    @{post.author?.username}
+                  </span>
+                </div>
                 <span className="text-sm" style={{ color: "var(--text-secondary)" }}>
                   · {formatTimestamp(post.createdAt)}
                 </span>
               </div>
-              <div className="relative">
+              <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => toggleMenu(post.id)}
                   className="p-2 rounded-full transition hover:opacity-70"
@@ -456,10 +487,11 @@ if (posts.length === 0) {
               </div>
             </div>
 
-            {/* Image Carousel - Full width, auto height */}
+<div>
+              {/* Image Carousel - Full width, auto height */}
             {totalImages > 0 && (
               <div className="relative w-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
-                <div className="relative w-full">
+                                <div className="relative w-full">
                   <img
                     src={post.photos[imageIndex].imageUrl}
                     alt={`Post image ${imageIndex + 1}`}
@@ -468,13 +500,13 @@ if (posts.length === 0) {
                   {totalImages > 1 && (
                     <>
                       <button
-                        onClick={() => prevImage(post.id, totalImages)}
+                        onClick={(e) => { e.stopPropagation(); prevImage(post.id, totalImages); }}
                         className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
                       >
                         ‹
                       </button>
                       <button
-                        onClick={() => nextImage(post.id, totalImages)}
+                        onClick={(e) => { e.stopPropagation(); nextImage(post.id, totalImages); }}
                         className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
                       >
                         ›
@@ -514,6 +546,8 @@ if (posts.length === 0) {
                   ))}
                 </div>
               )}
+            </div>
+
             </div>
 
             <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
@@ -615,8 +649,11 @@ if (posts.length === 0) {
                             className="w-6 h-6 rounded-full border"
                             style={{ borderColor: "var(--border)" }}
                           />
-                          <span className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
+                          <span className="text-sm font-medium flex items-center gap-1" style={{ color: "var(--text-primary)" }}>
                             {comment.author?.displayName}
+                            {comment.author?.moderator && (
+                              <MdVerified size={14} style={{ color: "#1DA1F2" }} title="Moderator" />
+                            )}
                           </span>
                           <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
                             @{comment.author?.username}

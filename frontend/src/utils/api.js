@@ -156,6 +156,14 @@ export async function getPostsByUser(userId, page = 0, size = 10) {
   return res.json();
 }
 
+export async function getPostById(postId) {
+  const res = await fetch(`${API_BASE_URL}/posts/${postId}`, {
+    headers: { ...authHeaders() },
+  });
+  if (!res.ok) throw new Error("Failed to fetch post");
+  return res.json();
+}
+
 export async function deletePost(postId) {
   const res = await fetch(`${API_BASE_URL}/posts/${postId}`, {
     method: "DELETE",

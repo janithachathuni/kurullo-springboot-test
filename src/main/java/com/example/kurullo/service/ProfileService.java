@@ -118,6 +118,7 @@ public class ProfileService {
         result.put("bio", profile.getBio());
         result.put("profilePic", profile.getProfilePic());
         result.put("bannerPic", profile.getBannerPic());
+        result.put("moderator", user.isModerator());   // <-- add this line
         result.put("followers", followRepository.countByFollowingId(user.getId()));
         result.put("following", followRepository.countByFollowerId(user.getId()));
 
