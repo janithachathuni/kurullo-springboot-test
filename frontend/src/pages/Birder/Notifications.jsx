@@ -113,8 +113,8 @@ const Notifications = () => {
 
     if (n.type === 'FOLLOW' && n.actorUsername) {
       navigate(`/${n.actorUsername}`);
-    } else if (n.postId) {
-      navigate(`/posts/${n.postId}`);
+    } else if (n.referenceType === 'POST' && n.referenceId) {
+      navigate(`/posts/${n.referenceId}`);
     }
   };
 

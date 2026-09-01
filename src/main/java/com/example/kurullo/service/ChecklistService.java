@@ -5,6 +5,7 @@ import com.example.kurullo.model.Bird;
 import com.example.kurullo.model.Checklist;
 import com.example.kurullo.model.ChecklistEntry;
 import com.example.kurullo.model.ChecklistNote;
+import com.example.kurullo.model.Trip;
 import com.example.kurullo.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,15 +22,18 @@ public class ChecklistService {
     private final ChecklistEntryRepository checklistEntryRepository;
     private final ChecklistNoteRepository checklistNoteRepository;
     private final BirdRepository birdRepository;
+    private final TripRepository tripRepository;
 
     public ChecklistService(ChecklistRepository checklistRepository,
                              ChecklistEntryRepository checklistEntryRepository,
                              ChecklistNoteRepository checklistNoteRepository,
-                             BirdRepository birdRepository) {
+                             BirdRepository birdRepository,
+                             TripRepository tripRepository) {
         this.checklistRepository = checklistRepository;
         this.checklistEntryRepository = checklistEntryRepository;
         this.checklistNoteRepository = checklistNoteRepository;
         this.birdRepository = birdRepository;
+        this.tripRepository = tripRepository;
     }
 
     @Transactional
@@ -74,7 +78,7 @@ public class ChecklistService {
         checklistRepository.delete(checklist);
     }
 
-    // ---- Entries (bird + count) ----
+    // ---- Entries (bird + count + timeSeen + fieldNotes) ----
 
     @Transactional
     public ChecklistEntry addEntry(Long checklistId, Long userId, AddChecklistEntryRequest request) {
@@ -87,6 +91,8 @@ public class ChecklistService {
         entry.setChecklist(checklist);
         entry.setBird(bird);
         entry.setCount(request.getCount());
+        entry.setTimeSeen(request.getTimeSeen());
+        entry.setFieldNotes(request.getFieldNotes());
         return checklistEntryRepository.save(entry);
     }
 
@@ -108,6 +114,8 @@ public class ChecklistService {
             entry.setBird(bird);
         }
         entry.setCount(request.getCount());
+        entry.setTimeSeen(request.getTimeSeen());
+        entry.setFieldNotes(request.getFieldNotes());
         return checklistEntryRepository.save(entry);
     }
 
@@ -117,7 +125,7 @@ public class ChecklistService {
         checklistEntryRepository.deleteByIdAndChecklistId(entryId, checklistId);
     }
 
-    // ---- Notes (journal-style, like TripNote) ----
+    // ---- Notes (journal-style, checklist-level — unrelated to per-entry fieldNotes) ----
 
     @Transactional
     public ChecklistNote addNote(Long checklistId, Long userId, CreateChecklistNoteRequest request) {
@@ -139,7 +147,7 @@ public class ChecklistService {
         getOwnedChecklist(checklistId, userId); // ownership check
 
         ChecklistNote note = checklistNoteRepository.findByIdAndChecklistId(noteId, checklistId)
-                .orElseThrow(() -> new IllegalArgumentException("Note not found with id: " + noteId));
+                .orElseThrow(() -> new RuntimeException("Note not found with id: " + noteId));
 
         note.setContent(request.getContent());
         note.setUpdatedAt(LocalDateTime.now());
@@ -160,10 +168,18 @@ public class ChecklistService {
         int speciesCount = entries.size();
         long notesCount = checklistNoteRepository.findByChecklistIdOrderByCreatedAtDesc(checklist.getId()).size();
 
+        String tripPlace = null;
+        if (checklist.getTripId() != null) {
+            tripPlace = tripRepository.findById(checklist.getTripId())
+                    .map(Trip::getLocation)
+                    .orElse(null);
+        }
+
         return new ChecklistResponse(
                 checklist.getId(),
                 checklist.getTitle(),
                 checklist.getTripId(),
+                tripPlace,
                 checklist.getCreatedAt(),
                 totalBirdCount,
                 speciesCount,
@@ -182,7 +198,9 @@ public class ChecklistService {
                 bird.getId(),
                 bird.getPrimaryName(),
                 bird.getScientificName(),
-                entry.getCount()
+                entry.getCount(),
+                entry.getTimeSeen(),
+                entry.getFieldNotes()
         );
     }
 

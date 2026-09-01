@@ -3,6 +3,8 @@ package com.example.kurullo.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalTime;
+
 @Entity
 @Table(name = "checklist_entries")
 @Data
@@ -21,4 +23,9 @@ public class ChecklistEntry {
     private Bird bird;
 
     private int count;
+
+    private LocalTime timeSeen;
+
+    @Column(columnDefinition = "TEXT")
+    private String fieldNotes;
 }

@@ -398,21 +398,21 @@ export async function getChecklistEntries(checklistId) {
   return res.json();
 }
 
-export async function addChecklistEntry(checklistId, birdId, count) {
+export async function addChecklistEntry(checklistId, birdId, count, timeSeen, fieldNotes) {
   const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ birdId, count }),
+    body: JSON.stringify({ birdId, count, timeSeen, fieldNotes }),
   });
   if (!res.ok) throw new Error("Failed to add checklist entry");
   return res.json();
 }
 
-export async function updateChecklistEntry(checklistId, entryId, birdId, count) {
+export async function updateChecklistEntry(checklistId, entryId, birdId, count, timeSeen, fieldNotes) {
   const res = await fetch(`${API_BASE_URL}/checklists/${checklistId}/entries/${entryId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ birdId, count }),
+    body: JSON.stringify({ birdId, count, timeSeen, fieldNotes }),
   });
   if (!res.ok) throw new Error("Failed to update checklist entry");
   return res.json();

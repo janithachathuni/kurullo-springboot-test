@@ -43,32 +43,32 @@ const Post = ({ userId, postId }) => {
   }, [postId, posts]);
 
   const fetchPosts = async () => {
-  setLoading(true);
-  try {
-    if (postId) {
-      const singlePost = await getPostById(postId);
-      setPosts([singlePost]);
-    } else {
-      const page = userId
-        ? await getPostsByUser(userId, 0, 10)
-        : await getFeed(0, 10);
-      setPosts(page.content || []);
+    setLoading(true);
+    try {
+      if (postId) {
+        const singlePost = await getPostById(postId);
+        setPosts([singlePost]);
+      } else {
+        const page = userId
+          ? await getPostsByUser(userId, 0, 10)
+          : await getFeed(0, 10);
+        setPosts(page.content || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch posts:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("Failed to fetch posts:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
-useEffect(() => {
-  fetchPosts();
-}, [userId, postId]);
+  useEffect(() => {
+    fetchPosts();
+  }, [userId, postId]);
 
-useEffect(() => {
-  window.addEventListener('post-created', fetchPosts);
-  return () => window.removeEventListener('post-created', fetchPosts);
-}, [userId]);
+  useEffect(() => {
+    window.addEventListener('post-created', fetchPosts);
+    return () => window.removeEventListener('post-created', fetchPosts);
+  }, [userId]);
 
   const formatTimestamp = (isoString) => {
     if (!isoString) return "";
@@ -208,7 +208,6 @@ useEffect(() => {
 
   const handleReportComplete = () => {
     setShowReport(false);
-    // Optionally show a success message
     alert('Report submitted successfully. We will review it shortly.');
   };
 
@@ -339,37 +338,42 @@ useEffect(() => {
     );
   };
 
- if (loading) {
-  return (
-    <div className="flex items-center justify-center h-64">
-      <div className="w-12 h-12 border-4 border-t-[var(--accent)] border-gray-200 rounded-full animate-spin"></div>
-    </div>
-  );
-}
+  // Handle tag click - navigate to bird page
+  const handleTagClick = (tagName) => {
+    // Navigate to bird page by tag name
+    navigate(`/bird/${encodeURIComponent(tagName)}`);
+  };
 
-if (posts.length === 0) {
-  return (
-    <div className="flex flex-col items-center justify-center h-64 text-center px-4">
-      {isOwnBlog ? (
-        <>
-          <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
-            You haven't posted anything yet.
-          </p>
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent('request-create-post'))}
-            className="font-medium underline hover:opacity-80 transition"
-            style={{ color: "var(--accent)" }}
-          >
-            Make your first post!
-          </button>
-        </>
-      ) : (
-        <p style={{ color: "var(--text-secondary)" }}>No posts yet.</p>
-        
-      )}
-    </div>
-  );
-}
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-12 h-12 border-4 border-t-[var(--accent)] border-gray-200 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center px-4">
+        {isOwnBlog ? (
+          <>
+            <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
+              You haven't posted anything yet.
+            </p>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('request-create-post'))}
+              className="font-medium underline hover:opacity-80 transition"
+              style={{ color: "var(--accent)" }}
+            >
+              Make your first post!
+            </button>
+          </>
+        ) : (
+          <p style={{ color: "var(--text-secondary)" }}>No posts yet.</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -379,6 +383,9 @@ if (posts.length === 0) {
         const showCommentsSection = showComments[post.id] || false;
         const comments = commentsByPost[post.id] || [];
         const isOwnPost = currentUser && post.author?.userId === currentUser.id;
+        
+        // Get the current image's tags
+        const currentImageTags = post.photos?.[imageIndex]?.birdTags || [];
 
         return (
           <div
@@ -487,67 +494,73 @@ if (posts.length === 0) {
               </div>
             </div>
 
-<div>
+            <div>
               {/* Image Carousel - Full width, auto height */}
-            {totalImages > 0 && (
-              <div className="relative w-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
-                                <div className="relative w-full">
-                  <img
-                    src={post.photos[imageIndex].imageUrl}
-                    alt={`Post image ${imageIndex + 1}`}
-                    className="w-full h-auto object-contain"
-                  />
-                  {totalImages > 1 && (
-                    <>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); prevImage(post.id, totalImages); }}
-                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
-                      >
-                        ‹
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); nextImage(post.id, totalImages); }}
-                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
-                      >
-                        ›
-                      </button>
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
-                        {post.photos.map((_, idx) => (
-                          <div
-                            key={idx}
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              idx === imageIndex ? "bg-white" : "bg-white/50"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
+              {totalImages > 0 && (
+                <div className="relative w-full" style={{ backgroundColor: "var(--bg-secondary)" }}>
+                  <div className="relative w-full">
+                    <img
+                      src={post.photos[imageIndex].imageUrl}
+                      alt={`Post image ${imageIndex + 1}`}
+                      className="w-full h-auto object-contain"
+                    />
+                    {totalImages > 1 && (
+                      <>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); prevImage(post.id, totalImages); }}
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); nextImage(post.id, totalImages); }}
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 border border-white/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
+                        >
+                          ›
+                        </button>
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1">
+                          {post.photos.map((_, idx) => (
+                            <div
+                              key={idx}
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                idx === imageIndex ? "bg-white" : "bg-white/50"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              {/* Tags for current image - centered, before description */}
+              {currentImageTags.length > 0 && (
+                <div className="px-4 pt-4">
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {currentImageTags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleTagClick(tag);
+                        }}
+                        className="text-sm underline font-medium hover:opacity-80 transition cursor-pointer"
+                        style={{ color: "var(--accent)" }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Content */}
+              <div className="p-4">
+                {post.description && (
+                  <p style={{ color: "var(--text-primary)" }} className="mb-3">{post.description}</p>
+                )}
               </div>
-            )}
-
-            {/* Content */}
-            <div className="p-4">
-              {post.description && (
-                <p style={{ color: "var(--text-primary)" }} className="mb-3">{post.description}</p>
-              )}
-
-              {post.photos?.[imageIndex]?.birdTags?.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {post.photos[imageIndex].birdTags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="text-sm underline font-medium hover:opacity-80 transition cursor-pointer"
-                      style={{ color: "var(--accent)" }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
             </div>
 
             <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
