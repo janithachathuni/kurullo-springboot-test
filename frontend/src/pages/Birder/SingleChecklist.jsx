@@ -263,14 +263,14 @@ const SingleChecklist = () => {
                   <p className="text-sm truncate" style={{ color: "var(--text-secondary)" }}>
                     {checklist?.tripPlace}
                   </p>
-                  {timeRange && (
+                  {/* {timeRange && (
                     <>
                       <span className="text-xs" style={{ color: "var(--text-secondary)" }}>•</span>
                       <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
                         Time: {timeRange}
                       </p>
                     </>
-                  )}
+                  )} */}
                 </div>
               </div>
             </>

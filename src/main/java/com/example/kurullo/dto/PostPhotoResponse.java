@@ -7,9 +7,9 @@ public class PostPhotoResponse {
     private Long id;
     private String imageUrl;
     private boolean featured;
-    private List<String> birdTags; // just display names, e.g. ["House Crow"]
+    private List<BirdTagResponse> birdTags; // id + display name per tagged bird
 
-    public PostPhotoResponse(Long id, String imageUrl, boolean featured, List<String> birdTags) {
+    public PostPhotoResponse(Long id, String imageUrl, boolean featured, List<BirdTagResponse> birdTags) {
         this.id = id;
         this.imageUrl = imageUrl;
         this.featured = featured;
@@ -19,5 +19,5 @@ public class PostPhotoResponse {
     public Long getId() { return id; }
     public String getImageUrl() { return imageUrl; }
     public boolean isFeatured() { return featured; }
-    public List<String> getBirdTags() { return birdTags; }
+    public List<BirdTagResponse> getBirdTags() { return birdTags; }
 }

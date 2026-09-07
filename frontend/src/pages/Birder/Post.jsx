@@ -338,10 +338,10 @@ const Post = ({ userId, postId }) => {
     );
   };
 
-  // Handle tag click - navigate to bird page
-  const handleTagClick = (tagName) => {
-    // Navigate to bird page by tag name
-    navigate(`/bird/${encodeURIComponent(tagName)}`);
+  // Handle tag click - navigate to bird page by ID (custom tags have no linked bird)
+  const handleTagClick = (tag) => {
+    if (!tag.id) return;
+    navigate(`/bird/${tag.id}`);
   };
 
   if (loading) {
@@ -545,10 +545,12 @@ const Post = ({ userId, postId }) => {
                           e.stopPropagation();
                           handleTagClick(tag);
                         }}
-                        className="text-sm underline font-medium hover:opacity-80 transition cursor-pointer"
+                        className={`text-sm font-medium transition ${
+                          tag.id ? "underline hover:opacity-80 cursor-pointer" : "cursor-default"
+                        }`}
                         style={{ color: "var(--accent)" }}
                       >
-                        {tag}
+                        {tag.primaryName}
                       </span>
                     ))}
                   </div>

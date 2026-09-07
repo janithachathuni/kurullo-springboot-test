@@ -69,8 +69,27 @@ const statCards = [
   { label: 'Pending Reports', value: '7', change: '2 new today', icon: FiAlertTriangle, color: '#f59e0b' },
 ];
 
+const monthNames = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
 const Statistics = () => {
-  const [activeTab, setActiveTab] = useState('week');
+  const [periodType, setPeriodType] = useState('week'); // 'year' | 'month' | 'week' | 'day' | 'all'
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth()); // 0-11
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+
+  const currentYear = new Date().getFullYear();
+  const yearOptions = Array.from({ length: 6 }, (_, i) => currentYear - i);
+
+  const periodOptions = [
+    { key: 'year', label: 'Year' },
+    { key: 'month', label: 'Month' },
+    { key: 'week', label: 'Week' },
+    { key: 'day', label: 'Day' },
+    { key: 'all', label: 'All time' },
+  ];
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "var(--bg-primary)" }}>
@@ -81,6 +100,75 @@ const Statistics = () => {
         <div>
           <h1 className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>Platform Statistics</h1>
           <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>Overview of Kurullo's activity and growth.</p>
+        </div>
+
+        {/* Time Period Filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap gap-2">
+            {periodOptions.map((opt) => (
+              <button
+                key={opt.key}
+                onClick={() => setPeriodType(opt.key)}
+                className="px-3 py-1.5 rounded-full text-sm font-medium transition"
+                style={{
+                  backgroundColor: periodType === opt.key ? 'var(--accent)' : 'var(--bg-card)',
+                  color: periodType === opt.key ? 'var(--accent-text)' : 'var(--text-secondary)',
+                  border: periodType === opt.key ? 'none' : '1px solid var(--border)',
+                }}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {periodType === 'year' && (
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="px-3 py-1.5 rounded-lg text-sm"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+            >
+              {yearOptions.map((y) => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+          )}
+
+          {periodType === 'month' && (
+            <>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="px-3 py-1.5 rounded-lg text-sm"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              >
+                {monthNames.map((m, i) => (
+                  <option key={m} value={i}>{m}</option>
+                ))}
+              </select>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="px-3 py-1.5 rounded-lg text-sm"
+                style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+              >
+                {yearOptions.map((y) => (
+                  <option key={y} value={y}>{y}</option>
+                ))}
+              </select>
+            </>
+          )}
+
+          {periodType === 'day' && (
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              max={new Date().toISOString().slice(0, 10)}
+              className="px-3 py-1.5 rounded-lg text-sm"
+              style={{ backgroundColor: "var(--bg-card)", border: "1px solid var(--border)", color: "var(--text-primary)" }}
+            />
+          )}
         </div>
 
         {/* Stat Cards */}

@@ -81,7 +81,7 @@ const Sidebar = () => {
   const secondaryNav = [
     { path: '/checklists', icon: <FiCheckSquare size={20} />, label: 'Checklists' },
     { path: '/trips', icon: <FiMap size={20} />, label: 'Trips' },
-    { path: '/forum', icon: <FiMessageSquare size={20} />, label: 'Forum' },
+    // { path: '/forum', icon: <FiMessageSquare size={20} />, label: 'Forum' },
     { path: '/settings', icon: <FiSettings size={20} />, label: 'Settings' },
   ];
 

@@ -4,7 +4,7 @@ import Footer from '../components/Footer'
 import BirderSidebar from '../components/Sidebar'
 import BirderRightSidebar from '../components/SidebarRight'
 import { useParams, useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaArrowLeft } from 'react-icons/fa'
 import { getBirdById, getBirdPhotos, getBirdSounds } from '../utils/api'
 
 // Backend enums come back as raw names like "VERY_COMMON" / "RESIDENT" —
@@ -181,6 +181,16 @@ const Bird = () => {
           ...(isBirder ? {} : { marginRight: "30%", maxWidth: "70%" })
         }}
       >
+        <div className="p-4 rounded-t-lg flex items-center" style={{ backgroundColor: "var(--bg-primary)" }}>
+          <FaArrowLeft
+            className="mr-4 cursor-pointer hover:opacity-70 transition-opacity"
+            style={{ color: "var(--text-primary)" }}
+            onClick={() => navigate(-1)}
+          />
+        </div>
+
+        <div className="border-t" style={{ borderColor: "var(--border)" }}></div>
+
         <div
           className="overflow-hidden border-t border-b"
           style={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border)" }}

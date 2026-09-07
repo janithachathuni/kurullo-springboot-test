@@ -245,8 +245,14 @@ const Home = () => {
         </div>
         
         {galleryLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <div className="w-12 h-12 border-4 border-t-[#506142] border-gray-200 rounded-full animate-spin"></div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-1">
+            {[...Array(10)].map((_, idx) => (
+              <div
+                key={idx}
+                className="w-full aspect-square animate-pulse"
+                style={{ backgroundColor: "var(--bg-card)" }}
+              />
+            ))}
           </div>
         ) : recentPhotos.length === 0 ? (
           <div className="text-center py-12" style={{ color: "var(--text-secondary)" }}>
@@ -257,8 +263,8 @@ const Home = () => {
             {recentPhotos.map((photo, idx) => (
               <div 
                 key={photo.id || idx} 
-                className="overflow-hidden transition transform hover:scale-101 hover:shadow-lg"
-                style={{ backgroundColor: "var(--bg-card)" }}
+                className="gallery-fade-in overflow-hidden transition transform hover:scale-101 hover:shadow-lg"
+                style={{ backgroundColor: "var(--bg-card)", animationDelay: `${idx * 80}ms` }}
               >
                 <img 
                   src={photo.imageUrl} 

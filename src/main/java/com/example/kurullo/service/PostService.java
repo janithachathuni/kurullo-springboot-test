@@ -209,7 +209,10 @@ public class PostService {
                         p.getImageUrl(),
                         p.isFeatured(),
                         p.getBirdTags().stream()
-                                .map(PhotoBirdTag::getTaggedName)
+                                .map(tag -> new BirdTagResponse(
+                                        tag.getBird() != null ? tag.getBird().getId() : null,
+                                        tag.getTaggedName()
+                                ))
                                 .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList());
