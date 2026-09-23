@@ -25,7 +25,7 @@ const Login = () => {
 
       localStorage.setItem("token", data.token);
       localStorage.setItem("role", data.role);
-localStorage.setItem("user", JSON.stringify({ id: data.id, username: data.username, role: data.role }));
+      localStorage.setItem("user", JSON.stringify({ id: data.id, username: data.username, role: data.role, moderator: data.moderator }));
       if (data.role === "ADMIN") {
         window.location.href = "/admin/dashboard";
       } else if (data.isFirstLogin || !data.profileCompleted) {

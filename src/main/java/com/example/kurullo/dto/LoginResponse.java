@@ -12,4 +12,5 @@ public class LoginResponse {
     private boolean firstLogin;
     private boolean profileCompleted;
     private String username;
+    private boolean moderator;
 }

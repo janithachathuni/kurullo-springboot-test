@@ -50,6 +50,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 + "&role=" + user.getRole()
                 + "&isFirstLogin=" + user.isFirstLogin()
                 + "&profileCompleted=" + user.isProfileCompleted()
-                + "&username=" + user.getUsername());
+                + "&username=" + user.getUsername()
+                + "&moderator=" + user.isModerator());
     }
 }

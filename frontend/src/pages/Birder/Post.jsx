@@ -427,6 +427,7 @@ const Post = ({ userId, postId }) => {
                   · {formatTimestamp(post.createdAt)}
                 </span>
               </div>
+              {!isOwnPost && (
               <div className="relative" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => toggleMenu(post.id)}
@@ -467,13 +468,15 @@ const Post = ({ userId, postId }) => {
                       >
                         Block User
                       </button>
-                      <button
-                        onClick={() => setShowMenu(null)}
-                        className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
-                        style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
-                      >
-                        Boost photo to admin
-                      </button>
+                      {currentUser?.moderator && (
+                        <button
+                          onClick={() => setShowMenu(null)}
+                          className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
+                          style={{ color: "var(--text-primary)", backgroundColor: "transparent", borderTop: "1px solid var(--border)" }}
+                        >
+                          Boost photo to admin
+                        </button>
+                      )}
                       <button
                         onClick={() => setShowReport(true)}
                         className="w-full text-left px-4 py-2.5 text-sm transition hover:opacity-70"
@@ -492,6 +495,7 @@ const Post = ({ userId, postId }) => {
                   </>
                 )}
               </div>
+              )}
             </div>
 
             <div>

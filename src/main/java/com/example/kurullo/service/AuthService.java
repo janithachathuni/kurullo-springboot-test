@@ -40,7 +40,8 @@ public class AuthService {
             user.getRole().name(),
             user.isFirstLogin(),
             user.isProfileCompleted(),
-            user.getUsername()
+            user.getUsername(),
+            user.isModerator()
         );
     }
 

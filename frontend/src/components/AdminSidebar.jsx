@@ -35,7 +35,7 @@ if (user?.role !== 'ADMIN') { window.location.href = '/dashboard'; }
     { path: '/admin/events-articles', icon: <FiImage size={20} />, label: 'Events & Articles' },
     { path: '/admin/content-moderation', icon: <FiShield size={20} />, label: 'Content Moderation' },
     { path: '/admin/manage-moderators', icon: <FiUsers size={20} />, label: 'Manage Moderators' },
-    { path: '/admin/notifications', icon: <FiBell size={20} />, label: 'Notifications' },
+    // { path: '/admin/notifications', icon: <FiBell size={20} />, label: 'Notifications' },
     { path: '/admin/advertisements', icon: <FiMonitor size={20} />, label: 'Advertisements' },
     { path: '/admin/reports', icon: <FiFlag size={20} />, label: 'Reports' },
     { path: '/admin/settings', icon: <FiSettings size={20} />, label: 'Settings' },

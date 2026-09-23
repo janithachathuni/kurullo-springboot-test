@@ -11,11 +11,12 @@ const role = params.get('role')
 const username = params.get('username')
 const isFirstLogin = params.get('isFirstLogin') === 'true'
 const profileCompleted = params.get('profileCompleted') === 'true'
+const moderator = params.get('moderator') === 'true'
 
 if (token) {
   localStorage.setItem('token', token)
   localStorage.setItem('role', role)
-  localStorage.setItem('user', JSON.stringify({ id: Number(userId), username, role }))
+  localStorage.setItem('user', JSON.stringify({ id: Number(userId), username, role, moderator }))
 
   if (role === 'ADMIN') {
     window.location.href = '/admin/dashboard'
